@@ -647,6 +647,9 @@ public:
     ////////////////////////////////////////////////////////////
     unsigned int getNativeHandle() const;
 
+    // If true, always bind when setting uniforms, otherwise never bind (application must do it).
+    void setBindAlways(bool always);
+
     ////////////////////////////////////////////////////////////
     /// \brief Bind a shader for rendering
     ///
@@ -669,6 +672,9 @@ public:
     ///
     ////////////////////////////////////////////////////////////
     static void bind(const Shader* shader);
+
+    // Bind just the shader, and not the textures.
+    static void bindProgram(const Shader* shader);
 
     ////////////////////////////////////////////////////////////
     /// \brief Tell whether or not the system supports shaders
@@ -759,7 +765,82 @@ private:
     int          m_currentTexture; ///< Location of the current texture in the shader
     TextureTable m_textures;       ///< Texture variables in the shader, mapped to their location
     UniformTable m_uniforms;       ///< Parameters location cache
+    bool         m_alwaysBind;
 };
+
+inline void Shader::setBindAlways(bool always)
+{
+    m_alwaysBind = always;
+}
+
+////////////////////////////////////////////////////////////
+inline void Shader::setParameter(const std::string& name, float x)
+{
+    setUniform(name, x);
+}
+
+
+////////////////////////////////////////////////////////////
+inline void Shader::setParameter(const std::string& name, float x, float y)
+{
+    setUniform(name, Glsl::Vec2(x, y));
+}
+
+
+////////////////////////////////////////////////////////////
+inline void Shader::setParameter(const std::string& name, float x, float y, float z)
+{
+    setUniform(name, Glsl::Vec3(x, y, z));
+}
+
+
+////////////////////////////////////////////////////////////
+inline void Shader::setParameter(const std::string& name, float x, float y, float z, float w)
+{
+    setUniform(name, Glsl::Vec4(x, y, z, w));
+}
+
+
+////////////////////////////////////////////////////////////
+inline void Shader::setParameter(const std::string& name, const Vector2f& v)
+{
+    setUniform(name, v);
+}
+
+
+////////////////////////////////////////////////////////////
+inline void Shader::setParameter(const std::string& name, const Vector3f& v)
+{
+    setUniform(name, v);
+}
+
+
+////////////////////////////////////////////////////////////
+inline void Shader::setParameter(const std::string& name, const Color& color)
+{
+    setUniform(name, Glsl::Vec4(color));
+}
+
+
+////////////////////////////////////////////////////////////
+inline void Shader::setParameter(const std::string& name, const Transform& transform)
+{
+    setUniform(name, Glsl::Mat4(transform));
+}
+
+
+////////////////////////////////////////////////////////////
+inline void Shader::setParameter(const std::string& name, const Texture& texture)
+{
+    setUniform(name, texture);
+}
+
+
+////////////////////////////////////////////////////////////
+inline void Shader::setParameter(const std::string& name, CurrentTextureType)
+{
+    setUniform(name, CurrentTexture);
+}
 
 } // namespace sf
 

@@ -189,12 +189,17 @@ struct Shader::UniformBinder : private NonCopyable
     currentProgram(castToGlHandle(shader.m_shaderProgram)),
     location(-1)
     {
+        restore = shader.m_alwaysBind;
+
         if (currentProgram)
         {
-            // Enable program object
-            glCheck(savedProgram = GLEXT_glGetHandle(GLEXT_GL_PROGRAM_OBJECT));
-            if (currentProgram != savedProgram)
-                glCheck(GLEXT_glUseProgramObject(currentProgram));
+            if (restore)
+            {
+                // Enable program object
+                glCheck(savedProgram = GLEXT_glGetHandle(GLEXT_GL_PROGRAM_OBJECT));
+                if (currentProgram != savedProgram)
+                    glCheck(GLEXT_glUseProgramObject(currentProgram));
+            }
 
             // Store uniform location for further use outside constructor
             location = shader.getUniformLocation(name);
@@ -208,7 +213,7 @@ struct Shader::UniformBinder : private NonCopyable
     ~UniformBinder()
     {
         // Disable program object
-        if (currentProgram && (currentProgram != savedProgram))
+        if (restore && currentProgram && (currentProgram != savedProgram))
             glCheck(GLEXT_glUseProgramObject(savedProgram));
     }
 
@@ -216,6 +221,7 @@ struct Shader::UniformBinder : private NonCopyable
     GLEXT_GLhandle       savedProgram;   ///< Handle to the previously active program object
     GLEXT_GLhandle       currentProgram; ///< Handle to the program object of the modified sf::Shader instance
     GLint                location;       ///< Uniform location, used by the surrounding sf::Shader code
+    bool           restore;
 };
 
 
@@ -224,7 +230,8 @@ Shader::Shader() :
 m_shaderProgram (0),
 m_currentTexture(-1),
 m_textures      (),
-m_uniforms      ()
+m_uniforms      (),
+m_alwaysBind(true)
 {
 }
 
@@ -673,76 +680,6 @@ void Shader::setUniformArray(const std::string& name, const Glsl::Mat4* matrixAr
 
 
 ////////////////////////////////////////////////////////////
-void Shader::setParameter(const std::string& name, float x)
-{
-    setUniform(name, x);
-}
-
-
-////////////////////////////////////////////////////////////
-void Shader::setParameter(const std::string& name, float x, float y)
-{
-    setUniform(name, Glsl::Vec2(x, y));
-}
-
-
-////////////////////////////////////////////////////////////
-void Shader::setParameter(const std::string& name, float x, float y, float z)
-{
-    setUniform(name, Glsl::Vec3(x, y, z));
-}
-
-
-////////////////////////////////////////////////////////////
-void Shader::setParameter(const std::string& name, float x, float y, float z, float w)
-{
-    setUniform(name, Glsl::Vec4(x, y, z, w));
-}
-
-
-////////////////////////////////////////////////////////////
-void Shader::setParameter(const std::string& name, const Vector2f& v)
-{
-    setUniform(name, v);
-}
-
-
-////////////////////////////////////////////////////////////
-void Shader::setParameter(const std::string& name, const Vector3f& v)
-{
-    setUniform(name, v);
-}
-
-
-////////////////////////////////////////////////////////////
-void Shader::setParameter(const std::string& name, const Color& color)
-{
-    setUniform(name, Glsl::Vec4(color));
-}
-
-
-////////////////////////////////////////////////////////////
-void Shader::setParameter(const std::string& name, const Transform& transform)
-{
-    setUniform(name, Glsl::Mat4(transform));
-}
-
-
-////////////////////////////////////////////////////////////
-void Shader::setParameter(const std::string& name, const Texture& texture)
-{
-    setUniform(name, texture);
-}
-
-
-////////////////////////////////////////////////////////////
-void Shader::setParameter(const std::string& name, CurrentTextureType)
-{
-    setUniform(name, CurrentTexture);
-}
-
-
-////////////////////////////////////////////////////////////
 unsigned int Shader::getNativeHandle() const
 {
     return m_shaderProgram;
@@ -781,6 +718,29 @@ void Shader::bind(const Shader* shader)
     }
 }
 
+void Shader::bindProgram(const Shader* shader)
+{
+    ensureGlContext();
+
+    // Make sure that we can use shaders
+    if (!isAvailable())
+    {
+        err() << "Failed to bind or unbind shader: your system doesn't support shaders "
+            << "(you should test Shader::isAvailable() before trying to use the Shader class)" << std::endl;
+        return;
+    }
+
+    if (shader && shader->m_shaderProgram)
+    {
+        // Enable the program
+        glCheck(GLEXT_glUseProgramObject(castToGlHandle(shader->m_shaderProgram)));
+    }
+    else
+    {
+        // Bind no shader
+        glCheck(GLEXT_glUseProgramObject(0));
+    }
+}
 
 ////////////////////////////////////////////////////////////
 bool Shader::isAvailable()
@@ -1348,3 +1308,4 @@ void Shader::bindTextures() const
 } // namespace sf
 
 #endif // SFML_OPENGL_ES
+
