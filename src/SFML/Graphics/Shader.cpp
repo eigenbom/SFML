@@ -434,6 +434,11 @@ void Shader::getUniform(const std::string& name, float* values)
     glGetUniformfvARB(m_shaderProgram, getUniformLocation(name), values);
 }
 
+void Shader::getUniform(const std::string& name, int* values)
+{
+    glGetUniformivARB(m_shaderProgram, getUniformLocation(name), values);
+}
+
 ////////////////////////////////////////////////////////////
 void Shader::setUniform(const std::string& name, float x)
 {

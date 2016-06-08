@@ -289,6 +289,7 @@ public:
 
     // Returns the value of the float uniform with name 'name' into 'values'.
     void getUniform(const std::string& name, float* values);
+    void getUniform(const std::string& name, int* values);
 
     ////////////////////////////////////////////////////////////
     /// \brief Specify value for \p float uniform
