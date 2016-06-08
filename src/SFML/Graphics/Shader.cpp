@@ -431,12 +431,12 @@ bool Shader::loadFromStream(InputStream& vertexShaderStream, InputStream& geomet
 
 void Shader::getUniform(const std::string& name, float* values)
 {
-    glGetUniformfvARB(m_shaderProgram, getUniformLocation(name), values);
+    glGetUniformfvARB(castToGlHandle(m_shaderProgram), getUniformLocation(name), values);
 }
 
 void Shader::getUniform(const std::string& name, int* values)
 {
-    glGetUniformivARB(m_shaderProgram, getUniformLocation(name), values);
+    glGetUniformivARB(castToGlHandle(m_shaderProgram), getUniformLocation(name), values);
 }
 
 ////////////////////////////////////////////////////////////
