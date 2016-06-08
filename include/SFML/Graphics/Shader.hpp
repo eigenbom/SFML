@@ -287,6 +287,9 @@ public:
     ////////////////////////////////////////////////////////////
     bool loadFromStream(InputStream& vertexShaderStream, InputStream& geometryShaderStream, InputStream& fragmentShaderStream);
 
+    // Returns the value of the float uniform with name 'name' into 'values'.
+    void getUniform(const std::string& name, float* values);
+
     ////////////////////////////////////////////////////////////
     /// \brief Specify value for \p float uniform
     ///

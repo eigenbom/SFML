@@ -429,6 +429,10 @@ bool Shader::loadFromStream(InputStream& vertexShaderStream, InputStream& geomet
     return compile(&vertexShader[0], &geometryShader[0], &fragmentShader[0]);
 }
 
+void Shader::getUniform(const std::string& name, float* values)
+{
+    glGetUniformfvARB(m_shaderProgram, getUniformLocation(name), values);
+}
 
 ////////////////////////////////////////////////////////////
 void Shader::setUniform(const std::string& name, float x)
