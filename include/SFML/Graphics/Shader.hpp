@@ -335,6 +335,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////
     void setUniform(const std::string& name, const Glsl::Vec4& vector);
+    void setUniform(int location, const Glsl::Vec4& vector);
 
     ////////////////////////////////////////////////////////////
     /// \brief Specify value for \p int uniform
@@ -508,6 +509,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////
     void setUniformArray(const std::string& name, const int* scalarArray, std::size_t length);
+    void setUniformArray(int location, const int* scalarArray, std::size_t length);
 
     ////////////////////////////////////////////////////////////
     /// \brief Specify values for \p vec2[] array uniform
@@ -538,6 +540,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////
     void setUniformArray(const std::string& name, const Glsl::Vec4* vectorArray, std::size_t length);
+    void setUniformArray(int location, const Glsl::Vec4* vectorArray, std::size_t length);
 
     ////////////////////////////////////////////////////////////
     /// \brief Specify values for \p mat3[] array uniform
@@ -711,6 +714,16 @@ public:
     ////////////////////////////////////////////////////////////
     static bool isGeometryAvailable();
 
+    ////////////////////////////////////////////////////////////
+    /// \brief Get the location ID of a shader uniform
+    ///
+    /// \param name Name of the uniform variable to search
+    ///
+    /// \return Location ID of the uniform, or -1 if not found
+    ///
+    ////////////////////////////////////////////////////////////
+    int getUniformLocation(const std::string& name);
+
 private:
 
     ////////////////////////////////////////////////////////////
@@ -736,16 +749,6 @@ private:
     ///
     ////////////////////////////////////////////////////////////
     void bindTextures() const;
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Get the location ID of a shader uniform
-    ///
-    /// \param name Name of the uniform variable to search
-    ///
-    /// \return Location ID of the uniform, or -1 if not found
-    ///
-    ////////////////////////////////////////////////////////////
-    int getUniformLocation(const std::string& name);
 
     ////////////////////////////////////////////////////////////
     /// \brief RAII object to save and restore the program

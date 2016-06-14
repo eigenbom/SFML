@@ -36,6 +36,7 @@
 #include <SFML/System/Mutex.hpp>
 #include <SFML/System/Lock.hpp>
 #include <SFML/System/Err.hpp>
+#include <cassert>
 #include <fstream>
 #include <vector>
 #include <cassert>
@@ -474,6 +475,11 @@ void Shader::setUniform(const std::string& name, const Glsl::Vec4& v)
         glCheck(GLEXT_glUniform4f(binder.location, v.x, v.y, v.z, v.w));
 }
 
+void Shader::setUniform(int location, const Glsl::Vec4& v)
+{
+    assert(location != -1);
+    glCheck(GLEXT_glUniform4f(location, v.x, v.y, v.z, v.w));
+}
 
 ////////////////////////////////////////////////////////////
 void Shader::setUniform(const std::string& name, int x)
@@ -623,6 +629,13 @@ void Shader::setUniformArray(const std::string& name, const int* scalarArray, st
 }
 
 ////////////////////////////////////////////////////////////
+void Shader::setUniformArray(int location, const int* scalarArray, std::size_t length)
+{
+    assert(location != -1);
+    glCheck(GLEXT_glUniform1iv(location, length, scalarArray));
+}
+
+////////////////////////////////////////////////////////////
 void Shader::setUniformArray(const std::string& name, const Glsl::Vec2* vectorArray, std::size_t length)
 {
     std::vector<float> contiguous = flatten(vectorArray, length);
@@ -655,6 +668,14 @@ void Shader::setUniformArray(const std::string& name, const Glsl::Vec4* vectorAr
     if (binder.location != -1){
         glCheck(GLEXT_glUniform4fv(binder.location, static_cast<GLsizei>(length), reinterpret_cast<const GLfloat*>(vectorArray)));
     }
+}
+
+////////////////////////////////////////////////////////////
+void Shader::setUniformArray(int location, const Glsl::Vec4* vectorArray, std::size_t length)
+{
+    std::vector<float> contiguous = flatten(vectorArray, length);
+    assert(location != -1);
+    glCheck(GLEXT_glUniform4fv(location, length, &contiguous[0]));
 }
 
 
