@@ -630,11 +630,14 @@ void Shader::setUniformArray(const std::string& name, const Glsl::Vec3* vectorAr
 ////////////////////////////////////////////////////////////
 void Shader::setUniformArray(const std::string& name, const Glsl::Vec4* vectorArray, std::size_t length)
 {
-    std::vector<float> contiguous = flatten(vectorArray, length);
-
+    // Note: We don't need to flatten in this case.
+    // As long as this static assertion holds.
+    assert(sizeof(Glsl::Vec4) == 4 * 4);
+    assert(vectorArray != nullptr);
     UniformBinder binder(*this, name);
-    if (binder.location != -1)
-        glCheck(GLEXT_glUniform4fv(binder.location, static_cast<GLsizei>(length), &contiguous[0]));
+    if (binder.location != -1){
+        glCheck(GLEXT_glUniform4fv(binder.location, static_cast<GLsizei>(length), vectorArray));
+    }
 }
 
 
