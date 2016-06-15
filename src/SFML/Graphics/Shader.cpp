@@ -673,9 +673,10 @@ void Shader::setUniformArray(const std::string& name, const Glsl::Vec4* vectorAr
 ////////////////////////////////////////////////////////////
 void Shader::setUniformArray(int location, const Glsl::Vec4* vectorArray, std::size_t length)
 {
-    std::vector<float> contiguous = flatten(vectorArray, length);
+    assert(sizeof(Glsl::Vec4) == 4 * 4);
     assert(location != -1);
-    glCheck(GLEXT_glUniform4fv(location, length, &contiguous[0]));
+    assert(vectorArray);
+    glCheck(GLEXT_glUniform4fv(location, length, &vectorArray->x));
 }
 
 
