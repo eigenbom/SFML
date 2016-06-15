@@ -540,6 +540,15 @@ public:
     ///
     ////////////////////////////////////////////////////////////
     void setUniformArray(const std::string& name, const Glsl::Vec4* vectorArray, std::size_t length);
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Specify values for \p vec4[] array uniform. Doesn't make a copy of vectorArray, unlike the string version.
+    ///
+    /// \param name        Name of the uniform variable in GLSL
+    /// \param vectorArray pointer to array of \p vec4 values
+    /// \param length      Number of elements in the array
+    ///
+    ////////////////////////////////////////////////////////////
     void setUniformArray(int location, const Glsl::Vec4* vectorArray, std::size_t length);
 
     ////////////////////////////////////////////////////////////
