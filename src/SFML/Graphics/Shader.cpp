@@ -459,6 +459,13 @@ void Shader::setUniform(const std::string& name, const Glsl::Vec2& v)
 
 
 ////////////////////////////////////////////////////////////
+void Shader::setUniform(int location, const Glsl::Vec2& v)
+{
+    glCheck(GLEXT_glUniform2f(location, v.x, v.y));
+}
+
+
+////////////////////////////////////////////////////////////
 void Shader::setUniform(const std::string& name, const Glsl::Vec3& v)
 {
     UniformBinder binder(*this, name);
@@ -603,6 +610,38 @@ void Shader::setUniform(const std::string& name, const Texture& texture)
     }
 }
 
+////////////////////////////////////////////////////////////
+void Shader::setUniform(int location, const Texture& texture)
+{
+    if (m_shaderProgram)
+    {
+        ensureGlContext();
+
+        // Find the location of the variable in the shader
+        if (location != -1)
+        {
+            // Store the location -> texture mapping
+            TextureTable::iterator it = m_textures.find(location);
+            if (it == m_textures.end())
+            {
+                // New entry, make sure there are enough texture units
+                GLint maxUnits = getMaxTextureUnits();
+                if (m_textures.size() + 1 >= static_cast<std::size_t>(maxUnits))
+                {
+                    err() << "Impossible to use texture for shader: all available texture units are used" << std::endl;
+                    return;
+                }
+
+                m_textures[location] = &texture;
+            }
+            else
+            {
+                // Location already used, just replace the texture
+                it->second = &texture;
+            }
+        }
+    }
+}
 
 ////////////////////////////////////////////////////////////
 void Shader::setUniform(const std::string& name, CurrentTextureType)

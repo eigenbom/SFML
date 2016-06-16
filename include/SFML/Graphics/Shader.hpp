@@ -308,6 +308,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////
     void setUniform(const std::string& name, const Glsl::Vec2& vector);
+    void setUniform(int location, const Glsl::Vec2& vector);
 
     ////////////////////////////////////////////////////////////
     /// \brief Specify value for \p vec3 uniform
@@ -467,6 +468,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////
     void setUniform(const std::string& name, const Texture& texture);
+    void setUniform(int location, const Texture& texture);
 
     ////////////////////////////////////////////////////////////
     /// \brief Specify current texture as \p sampler2D uniform
