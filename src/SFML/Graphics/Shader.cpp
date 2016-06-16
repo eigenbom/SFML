@@ -484,8 +484,8 @@ void Shader::setUniform(const std::string& name, const Glsl::Vec4& v)
 
 void Shader::setUniform(int location, const Glsl::Vec4& v)
 {
-    assert(location != -1);
-    glCheck(GLEXT_glUniform4f(location, v.x, v.y, v.z, v.w));
+    if (location != -1)
+        glCheck(GLEXT_glUniform4f(location, v.x, v.y, v.z, v.w));
 }
 
 ////////////////////////////////////////////////////////////
@@ -499,8 +499,8 @@ void Shader::setUniform(const std::string& name, int x)
 ////////////////////////////////////////////////////////////
 void Shader::setUniform(int location, int x)
 {
-    assert(location != -1);
-    glCheck(GLEXT_glUniform1i(location, x));
+    if (location != -1)
+        glCheck(GLEXT_glUniform1i(location, x));
 }
 
 ////////////////////////////////////////////////////////////
@@ -687,8 +687,8 @@ void Shader::setUniformArray(const std::string& name, const int* scalarArray, st
 ////////////////////////////////////////////////////////////
 void Shader::setUniformArray(int location, const int* scalarArray, std::size_t length)
 {
-    assert(location != -1);
-    glCheck(GLEXT_glUniform1iv(location, length, scalarArray));
+    if (location != -1)
+        glCheck(GLEXT_glUniform1iv(location, length, scalarArray));
 }
 
 ////////////////////////////////////////////////////////////
@@ -730,9 +730,9 @@ void Shader::setUniformArray(const std::string& name, const Glsl::Vec4* vectorAr
 void Shader::setUniformArray(int location, const Glsl::Vec4* vectorArray, std::size_t length)
 {
     assert(sizeof(Glsl::Vec4) == 4 * 4);
-    assert(location != -1);
     assert(vectorArray);
-    glCheck(GLEXT_glUniform4fv(location, length, &vectorArray->x));
+    if (location != -1)
+        glCheck(GLEXT_glUniform4fv(location, length, &vectorArray->x));
 }
 
 
