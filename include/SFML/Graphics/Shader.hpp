@@ -299,6 +299,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////
     void setUniform(const std::string& name, float x);
+    void setUniform(int location, float x);
 
     ////////////////////////////////////////////////////////////
     /// \brief Specify value for \p vec2 uniform
