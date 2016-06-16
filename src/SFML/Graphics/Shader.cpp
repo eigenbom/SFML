@@ -655,6 +655,17 @@ void Shader::setUniform(const std::string& name, CurrentTextureType)
     }
 }
 
+////////////////////////////////////////////////////////////
+void Shader::setUniform(int location, CurrentTextureType)
+{
+    if (m_shaderProgram)
+    {
+        ensureGlContext();
+
+        // Find the location of the variable in the shader
+        m_currentTexture = location;
+    }
+}
 
 ////////////////////////////////////////////////////////////
 void Shader::setUniformArray(const std::string& name, const float* scalarArray, std::size_t length)

@@ -492,6 +492,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////
     void setUniform(const std::string& name, CurrentTextureType);
+    void setUniform(int location, CurrentTextureType);
 
     ////////////////////////////////////////////////////////////
     /// \brief Specify values for \p float[] array uniform
