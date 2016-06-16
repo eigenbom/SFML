@@ -489,6 +489,12 @@ void Shader::setUniform(const std::string& name, int x)
         glCheck(GLEXT_glUniform1i(binder.location, x));
 }
 
+////////////////////////////////////////////////////////////
+void Shader::setUniform(int location, int x)
+{
+    assert(location != -1);
+    glCheck(GLEXT_glUniform1i(location, x));
+}
 
 ////////////////////////////////////////////////////////////
 void Shader::setUniform(const std::string& name, const Glsl::Ivec2& v)

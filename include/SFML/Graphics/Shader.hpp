@@ -345,6 +345,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////
     void setUniform(const std::string& name, int x);
+    void setUniform(int location, int x);
 
     ////////////////////////////////////////////////////////////
     /// \brief Specify value for \p ivec2 uniform
