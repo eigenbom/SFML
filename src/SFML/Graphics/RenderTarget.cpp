@@ -741,13 +741,26 @@ void RenderTarget::setupDraw(bool useVertexCache, const RenderStates& states)
         const float* textureMatrix = (states.textureTransform == nullptr) ? emptyTextureMatrix : states.textureTransform->getMatrix();
         const bool sameTextureTransform = (textureId == m_cache.lastTextureId) && std::equal(std::begin(m_cache.lastTextureMatrix), std::end(m_cache.lastTextureMatrix), textureMatrix);
 
-        if (textureId != m_cache.lastTextureId || !sameTextureTransform)
+        if (!m_cache.enable || (textureId != m_cache.lastTextureId || !sameTextureTransform))
             applyTexture(states);
     }
 
     // Apply the shader
     if (states.shader && !states.shaderIsBound)
         applyShader(states.shader);
+
+    if (states.shader) {
+        // Apply the color
+        if (!m_cache.enable || states.color != m_cache.lastColor) {
+            const Glsl::Vec4 colour(states.color);
+            sf::Shader* shader = const_cast<sf::Shader*>(states.shader);
+
+            // TODO: Refactor this into a shader->setColour(...) method.
+            const int spriteColourLocation = shader->getUniformLocation("u_colour");
+            shader->setUniform(spriteColourLocation, colour);
+            m_cache.lastColor = states.color;
+        }
+    }
 }
 
 

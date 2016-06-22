@@ -465,6 +465,7 @@ private:
         Uint64    lastTextureId;  ///< Cached texture
         float     lastTextureMatrix[16]; ///< Texture transform at time of texture cache
         bool      texCoordsArrayEnabled; ///< Is GL_TEXTURE_COORD_ARRAY client state enabled?
+		Color     lastColor;      ///< Cached colour
         bool      useVertexCache; ///< Did we previously use the vertex cache?
         Vertex    vertexCache[VertexCacheSize]; ///< Pre-transformed vertices cache
     };

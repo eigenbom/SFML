@@ -11,11 +11,12 @@ int main()
     offscreen.resetGLStates(); // NB: Need to do this to initialise the glStates
 
     const char* vertexShader = R"(#version 120
+			uniform vec4 u_colour; // Colour uniform, used for new Sprite implementation
 			void main(void)
 			{
 				gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
 				gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
-				gl_FrontColor = gl_Color;
+				gl_FrontColor = gl_Color * u_colour;
 			}
 			)";
 
@@ -32,6 +33,7 @@ int main()
     bool result = shader.loadFromMemory(vertexShader, fragmentShader);
     assert(result);
     shader.setUniform("u_tex", sf::Shader::CurrentTexture);
+    shader.setUniform("u_colour", sf::Glsl::Vec4(1, 1, 1, 1));
 
     sf::Image image;
     image.create(8, 8);
@@ -66,6 +68,11 @@ int main()
         sf::Shader::bind(&shader);
         for (int i = 0; i < 10; ++i) {
             sprite.setPosition(i * 60, 100);
+            sprite.setColor(sf::Color(255, 255, 100 + 15 * i));
+            // const sf::Color col = sf::Color(255, 255, 100 + 15 * i);
+            // const sf::Glsl::Vec4 colourAsVec4 (col.r / 255.0f, col.g / 255.0f, col.b / 255.0f, col.a / 255.0f);
+            // shader.setUniform("u_colour", colourAsVec4);
+
             sf::RenderStates states;
             states.shader = &shader;
             states.shaderIsBound = true;
@@ -75,7 +82,7 @@ int main()
         offscreen.setActive(false);
 				
         window.clear();
-        window.draw(sf::Sprite(offscreen.getTexture()));
+        window.draw(sf::Sprite(offscreen.getTexture()), &shader);
         window.display();
     }
 

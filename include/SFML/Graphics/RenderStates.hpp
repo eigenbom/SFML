@@ -31,12 +31,13 @@
 #include <SFML/Graphics/Export.hpp>
 #include <SFML/Graphics/BlendMode.hpp>
 #include <SFML/Graphics/Transform.hpp>
-
+#include <SFML/Graphics/Color.hpp>
 
 namespace sf
 {
 class Shader;
 class Texture;
+class Color;
 
 ////////////////////////////////////////////////////////////
 /// \brief Define the states used for drawing to a RenderTarget
@@ -112,12 +113,13 @@ public:
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
+    Color            color;     ///< Pass into colour uniform of vertex shader
     BlendMode        blendMode; ///< Blending mode
     Transform        transform; ///< Transform
     const Texture*   texture;   ///< Texture
-	const Transform* textureTransform; ///< A manually set texture transform
     const Shader*    shader;    ///< Shader
-    bool             shaderIsBound; ///< If true, don't bind or unbind a shader when drawing
+	const Transform* textureTransform; ///< Set to override the texture transform
+    bool             shaderIsBound;    ///< Set to disable binding/unbinding of shaders
 };
 
 } // namespace sf

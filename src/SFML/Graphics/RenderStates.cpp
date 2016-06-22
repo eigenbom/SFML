@@ -46,7 +46,8 @@ transform(),
 texture  (NULL),
 shader   (NULL),
 shaderIsBound(false),
-textureTransform(NULL)
+textureTransform(NULL),
+color(NULL)
 {
 }
 
@@ -58,7 +59,8 @@ transform(theTransform),
 texture  (NULL),
 shader   (NULL),
 shaderIsBound(false),
-textureTransform(NULL)
+textureTransform(NULL),
+color(NULL)
 {
 }
 
@@ -70,7 +72,8 @@ transform(),
 texture  (NULL),
 shader   (NULL),
 shaderIsBound(false),
-textureTransform(NULL)
+textureTransform(NULL),
+color(NULL)
 {
 }
 
@@ -82,7 +85,8 @@ transform(),
 texture  (theTexture),
 shader   (NULL),
 shaderIsBound(false),
-textureTransform(NULL)
+textureTransform(NULL),
+color(NULL)
 {
 }
 
@@ -94,7 +98,8 @@ transform(),
 texture  (NULL),
 shader   (theShader),
 shaderIsBound(false),
-textureTransform(NULL)
+textureTransform(NULL),
+color(NULL)
 {
 }
 
@@ -107,7 +112,8 @@ transform(theTransform),
 texture  (theTexture),
 shader   (theShader),
 shaderIsBound(false),
-textureTransform(NULL)
+textureTransform(NULL),
+color(NULL)
 {
 }
 

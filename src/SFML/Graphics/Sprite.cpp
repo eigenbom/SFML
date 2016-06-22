@@ -28,7 +28,9 @@
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
+#include <SFML/System/Err.hpp>
 #include <cstdlib>
+#include <cassert>
 
 namespace sf
 {
@@ -36,7 +38,8 @@ namespace sf
 Sprite::Sprite() :
 m_verticesBuffer(TrianglesStrip, VertexBuffer::Stream),
 m_texture       (NULL),
-m_textureRect   ()
+m_textureRect   (),
+m_color(Color::White)
 {
     if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
         m_verticesBuffer.create(4);
@@ -47,7 +50,8 @@ m_textureRect   ()
 Sprite::Sprite(const Texture& texture) :
 m_verticesBuffer(TrianglesStrip, VertexBuffer::Stream),
 m_texture       (NULL),
-m_textureRect   ()
+m_textureRect   (),
+m_color(Color::White)
 {
     if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
         m_verticesBuffer.create(4);
@@ -60,7 +64,8 @@ m_textureRect   ()
 Sprite::Sprite(const Texture& texture, const IntRect& rectangle) :
 m_verticesBuffer(TrianglesStrip, VertexBuffer::Stream),
 m_texture       (NULL),
-m_textureRect   ()
+m_textureRect   (),
+m_color(Color::White)
 {
     if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
         m_verticesBuffer.create(4);
@@ -103,11 +108,11 @@ void Sprite::setTextureRect(const IntRect& rectangle)
 ////////////////////////////////////////////////////////////
 void Sprite::setColor(const Color& color)
 {
-    // Update the vertices' color
-    m_vertices[0].color = color;
-    m_vertices[1].color = color;
-    m_vertices[2].color = color;
-    m_vertices[3].color = color;
+    m_vertices[0].color = Color::White;
+    m_vertices[1].color = Color::White;
+    m_vertices[2].color = Color::White;
+    m_vertices[3].color = Color::White;
+    m_color = color;
 
     // Update the vertex buffer if it is being used
     if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
@@ -132,7 +137,7 @@ const IntRect& Sprite::getTextureRect() const
 ////////////////////////////////////////////////////////////
 const Color& Sprite::getColor() const
 {
-    return m_vertices[0].color;
+	return m_color;
 }
 
 
@@ -158,9 +163,15 @@ void Sprite::draw(RenderTarget& target, RenderStates states) const
 {
     if (m_texture)
     {
+		if (states.shader == NULL) {
+            sf::err() << "Sprite::draw() requires a shader!" << std::endl;
+            assert(false);
+		}
+
         states.transform *= getTransform() * m_vertexTransform;
         states.texture = m_texture;
         states.textureTransform = &m_textureTransform;
+		states.color = m_color;
 
         if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
         {
