@@ -158,7 +158,7 @@ void Sprite::draw(RenderTarget& target, RenderStates states) const
 {
     if (m_texture)
     {
-        states.transform *= getTransform();
+        states.transform *= getTransform() * m_vertexTransform;
         states.texture = m_texture;
         states.textureTransform = &m_textureTransform;
 
@@ -178,11 +178,15 @@ void Sprite::draw(RenderTarget& target, RenderStates states) const
 void Sprite::updatePositions()
 {
     FloatRect bounds = getLocalBounds();
-
-    m_vertices[0].position = Vector2f(0, 0);
-    m_vertices[1].position = Vector2f(0, bounds.height);
-    m_vertices[2].position = Vector2f(bounds.width, 0);
-    m_vertices[3].position = Vector2f(bounds.width, bounds.height);
+	m_vertices[0].position = Vector2f(0, 0);
+	m_vertices[1].position = Vector2f(0, 1.0f);
+	m_vertices[2].position = Vector2f(1.0f, 0);
+	m_vertices[3].position = Vector2f(1.0f, 1.0f);
+	m_vertexTransform = Transform(
+		bounds.width, 0.0f, 0.0f,
+		0.0f, bounds.height, 0.0f,
+		0.0f, 0.0f, 1.0f
+    );
 }
 
 
