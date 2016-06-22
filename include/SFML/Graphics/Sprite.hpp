@@ -220,6 +220,7 @@ private:
     VertexBuffer   m_verticesBuffer; ///< Vertex buffer containing the sprite's geometry
     const Texture* m_texture;        ///< Texture of the sprite
     IntRect        m_textureRect;    ///< Rectangle defining the area of the source texture to display
+	Transform      m_textureTransform; ///< Sprites will use a texture transform
 };
 
 } // namespace sf

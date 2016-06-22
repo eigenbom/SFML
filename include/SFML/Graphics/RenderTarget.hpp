@@ -413,7 +413,7 @@ private:
     /// \param texture Texture to apply
     ///
     ////////////////////////////////////////////////////////////
-    void applyTexture(const Texture* texture);
+	void applyTexture(const RenderStates& states);
 
     ////////////////////////////////////////////////////////////
     /// \brief Apply a new shader

@@ -112,11 +112,12 @@ public:
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
-    BlendMode      blendMode; ///< Blending mode
-    Transform      transform; ///< Transform
-    const Texture* texture;   ///< Texture
-    const Shader*  shader;    ///< Shader
-    bool           shaderIsBound; ///< If true, don't bind or unbind a shader when drawing
+    BlendMode        blendMode; ///< Blending mode
+    Transform        transform; ///< Transform
+    const Texture*   texture;   ///< Texture
+	const Transform* textureTransform; ///< A manually set texture transform
+    const Shader*    shader;    ///< Shader
+    bool             shaderIsBound; ///< If true, don't bind or unbind a shader when drawing
 };
 
 } // namespace sf

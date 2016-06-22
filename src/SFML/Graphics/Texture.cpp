@@ -736,7 +736,7 @@ void Texture::invalidateMipmap()
 
 
 ////////////////////////////////////////////////////////////
-void Texture::bind(const Texture* texture, CoordinateType coordinateType)
+void Texture::bind(const Texture* texture, CoordinateType coordinateType, const Transform* transform)
 {
     TransientContextLock lock;
 
@@ -746,7 +746,16 @@ void Texture::bind(const Texture* texture, CoordinateType coordinateType)
         glCheck(glBindTexture(GL_TEXTURE_2D, texture->m_texture));
 
         // Check if we need to define a special texture matrix
-        if ((coordinateType == Pixels) || texture->m_pixelsFlipped)
+		if (transform != NULL)
+		{
+			const float* matrix = transform->getMatrix();
+			glCheck(glMatrixMode(GL_TEXTURE));
+			glCheck(glLoadMatrixf(matrix));
+
+			// Go back to model-view mode (sf::RenderTarget relies on it)
+			glCheck(glMatrixMode(GL_MODELVIEW));
+		}
+		else if ((coordinateType == Pixels) || texture->m_pixelsFlipped)
         {
             GLfloat matrix[16] = {1.f, 0.f, 0.f, 0.f,
                                   0.f, 1.f, 0.f, 0.f,
@@ -789,7 +798,6 @@ void Texture::bind(const Texture* texture, CoordinateType coordinateType)
         glCheck(glMatrixMode(GL_MODELVIEW));
     }
 }
-
 
 ////////////////////////////////////////////////////////////
 unsigned int Texture::getMaximumSize()

@@ -179,7 +179,7 @@ void RenderTarget::clear(const Color& color)
     if (isActive(m_id) || setActive(true))
     {
         // Unbind texture to fix RenderTexture preventing clear
-        applyTexture(NULL);
+        applyTexture(RenderStates());
 
         glCheck(glClearColor(color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f));
         glCheck(glClear(GL_COLOR_BUFFER_BIT));
@@ -559,7 +559,7 @@ void RenderTarget::resetGLStates()
 
         // Apply the default SFML states
         applyBlendMode(BlendAlpha);
-        applyTexture(NULL);
+        applyTexture(RenderStates());
         if (shaderAvailable)
             applyShader(NULL);
 
@@ -673,9 +673,11 @@ void RenderTarget::applyTransform(const Transform& transform)
 
 
 ////////////////////////////////////////////////////////////
-void RenderTarget::applyTexture(const Texture* texture)
+void RenderTarget::applyTexture(const RenderStates& states)
 {
-    Texture::bind(texture, Texture::Pixels);
+	const Texture* texture = states.texture;
+	const Transform* textureTransform = states.textureTransform;
+	Texture::bind(texture, Texture::Pixels, textureTransform);
 
     m_cache.lastTextureId = texture ? texture->m_cacheId : 0;
 }
@@ -723,13 +725,13 @@ void RenderTarget::setupDraw(bool useVertexCache, const RenderStates& states)
         // This saves us from having to call glFlush() in
         // RenderTextureImplFBO which can be quite costly
         // See: https://www.khronos.org/opengl/wiki/Memory_Model
-        applyTexture(states.texture);
+        applyTexture(states);
     }
     else
     {
         Uint64 textureId = states.texture ? states.texture->m_cacheId : 0;
-        if (textureId != m_cache.lastTextureId)
-            applyTexture(states.texture);
+        if (textureId != m_cache.lastTextureId || states.textureTransform != NULL)
+            applyTexture(states);
     }
 
     // Apply the shader
@@ -761,7 +763,7 @@ void RenderTarget::cleanupDraw(const RenderStates& states)
     // If the texture we used to draw belonged to a RenderTexture, then forcibly unbind that texture.
     // This prevents a bug where some drivers do not clear RenderTextures properly.
     if (states.texture && states.texture->m_fboAttachment)
-        applyTexture(NULL);
+        applyTexture(RenderStates());
 
     // Re-enable the cache at the end of the draw if it was disabled
     m_cache.enable = true;
