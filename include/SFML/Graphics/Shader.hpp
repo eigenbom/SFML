@@ -535,6 +535,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////
     void setUniformArray(const std::string& name, const Glsl::Vec3* vectorArray, std::size_t length);
+	void setUniformArray(int location, const Glsl::Vec3* vectorArray, std::size_t length);
 
     ////////////////////////////////////////////////////////////
     /// \brief Specify values for \p vec4[] array uniform
