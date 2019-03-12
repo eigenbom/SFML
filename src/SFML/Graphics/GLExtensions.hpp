@@ -228,6 +228,7 @@
     #define GLEXT_glUniform2i                         glUniform2iARB
     #define GLEXT_glUniform3i                         glUniform3iARB
     #define GLEXT_glUniform4i                         glUniform4iARB
+    #define GLEXT_glUniform1iv                        glUniform1ivARB
     #define GLEXT_glUniform1fv                        glUniform1fvARB
     #define GLEXT_glUniform2fv                        glUniform2fvARB
     #define GLEXT_glUniform2iv                        glUniform2ivARB

@@ -496,6 +496,16 @@ public:
     void setUniformArray(const std::string& name, const float* scalarArray, std::size_t length);
 
     ////////////////////////////////////////////////////////////
+    /// \brief Specify values for \p int[] array uniform
+    ///
+    /// \param name        Name of the uniform variable in GLSL
+    /// \param scalarArray pointer to array of \p int values
+    /// \param length      Number of elements in the array
+    ///
+    ////////////////////////////////////////////////////////////
+    void setUniformArray(const std::string& name, const int* scalarArray, std::size_t length);
+
+    ////////////////////////////////////////////////////////////
     /// \brief Specify values for \p vec2[] array uniform
     ///
     /// \param name        Name of the uniform variable in GLSL
