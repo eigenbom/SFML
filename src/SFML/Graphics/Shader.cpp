@@ -56,6 +56,17 @@
 
 #endif
 
+// Helpers for static assert
+template<bool Cond> struct Static_assert_cpp98 {
+    static void apply() { static const char test_variable[Cond ? 1 : -1]; }
+};
+
+template<> struct Static_assert_cpp98<true> {
+    static void apply() {}
+};
+
+#define STATIC_ASSERT_CPP98(condition) Static_assert_cpp98<condition>::apply()
+
 namespace
 {
     sf::Mutex maxTextureUnitsMutex;
@@ -218,8 +229,6 @@ struct Shader::UniformBinder : private NonCopyable
         {
             if (restore)
             {
-                ensureGlContext();
-
                 // Enable program object
                 glCheck(savedProgram = GLEXT_glGetHandle(GLEXT_GL_PROGRAM_OBJECT));
                 if (currentProgram != savedProgram)
@@ -648,9 +657,7 @@ void Shader::setUniform(int location, const Texture& texture)
 {
     if (m_shaderProgram)
     {
-        ensureGlContext();
-
-        // Find the location of the variable in the shader
+        TransientContextLock lock;
         if (location != -1)
         {
             // Store the location -> texture mapping
@@ -693,9 +700,7 @@ void Shader::setUniform(int location, CurrentTextureType)
 {
     if (m_shaderProgram)
     {
-        ensureGlContext();
-
-        // Find the location of the variable in the shader
+        TransientContextLock lock;
         m_currentTexture = location;
     }
 }
@@ -747,12 +752,13 @@ void Shader::setUniformArray(const std::string& name, const Glsl::Vec3* vectorAr
 }
 
 
+
 ////////////////////////////////////////////////////////////
 void Shader::setUniformArray(const std::string& name, const Glsl::Vec4* vectorArray, std::size_t length)
 {
     // Note: We don't need to flatten in this case.
     // As long as this static assertion holds.
-    assert(sizeof(Glsl::Vec4) == 4 * 4);
+    STATIC_ASSERT_CPP98(sizeof(Glsl::Vec4) == 4 * 4);
     assert(vectorArray != nullptr);
     UniformBinder binder(*this, name);
     if (binder.location != -1){
@@ -763,7 +769,7 @@ void Shader::setUniformArray(const std::string& name, const Glsl::Vec4* vectorAr
 ////////////////////////////////////////////////////////////
 void Shader::setUniformArray(int location, const Glsl::Vec4* vectorArray, std::size_t length)
 {
-    assert(sizeof(Glsl::Vec4) == 4 * 4);
+    STATIC_ASSERT_CPP98(sizeof(Glsl::Vec4) == 4 * 4);
     assert(vectorArray);
     UniformBinder binder(*this, location);
     if (location != -1)
