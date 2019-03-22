@@ -38,6 +38,7 @@
 #include <SFML/System/Err.hpp>
 #include <fstream>
 #include <vector>
+#include <cassert>
 
 
 #ifndef SFML_OPENGL_ES
