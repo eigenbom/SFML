@@ -647,7 +647,7 @@ public:
     ////////////////////////////////////////////////////////////
     unsigned int getNativeHandle() const;
 
-    // If true, always bind when setting uniforms, otherwise never bind (application must do it).
+    /// If true, always bind when setting uniforms, otherwise never bind (application must do it).
     void setBindAlways(bool always);
 
     ////////////////////////////////////////////////////////////
@@ -673,7 +673,7 @@ public:
     ////////////////////////////////////////////////////////////
     static void bind(const Shader* shader);
 
-    // Bind just the shader, and not the textures.
+    /// Bind just the shader, and not the textures.
     static void bindProgram(const Shader* shader);
 
     ////////////////////////////////////////////////////////////
@@ -765,7 +765,7 @@ private:
     int          m_currentTexture; ///< Location of the current texture in the shader
     TextureTable m_textures;       ///< Texture variables in the shader, mapped to their location
     UniformTable m_uniforms;       ///< Parameters location cache
-    bool         m_alwaysBind;
+    bool         m_alwaysBind;     ///< Bind the shader every time?
 };
 
 inline void Shader::setBindAlways(bool always)

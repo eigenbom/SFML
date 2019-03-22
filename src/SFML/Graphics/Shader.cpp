@@ -720,7 +720,7 @@ void Shader::bind(const Shader* shader)
 
 void Shader::bindProgram(const Shader* shader)
 {
-    ensureGlContext();
+    TransientContextLock lock;
 
     // Make sure that we can use shaders
     if (!isAvailable())
