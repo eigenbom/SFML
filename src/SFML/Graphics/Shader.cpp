@@ -637,7 +637,7 @@ void Shader::setUniformArray(const std::string& name, const Glsl::Vec4* vectorAr
     assert(vectorArray != nullptr);
     UniformBinder binder(*this, name);
     if (binder.location != -1){
-        glCheck(GLEXT_glUniform4fv(binder.location, static_cast<GLsizei>(length), vectorArray));
+        glCheck(GLEXT_glUniform4fv(binder.location, static_cast<GLsizei>(length), reinterpret_cast<const GLfloat*>(vectorArray)));
     }
 }
 
