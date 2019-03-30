@@ -116,6 +116,7 @@ public:
     Transform      transform; ///< Transform
     const Texture* texture;   ///< Texture
     const Shader*  shader;    ///< Shader
+    bool           shaderIsBound; ///< If true, don't bind or unbind a shader when drawing
 };
 
 } // namespace sf

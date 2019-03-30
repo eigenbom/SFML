@@ -44,7 +44,8 @@ RenderStates::RenderStates() :
 blendMode(BlendAlpha),
 transform(),
 texture  (NULL),
-shader   (NULL)
+shader   (NULL),
+shaderIsBound(false)
 {
 }
 
@@ -54,7 +55,8 @@ RenderStates::RenderStates(const Transform& theTransform) :
 blendMode(BlendAlpha),
 transform(theTransform),
 texture  (NULL),
-shader   (NULL)
+shader   (NULL),
+shaderIsBound(false)
 {
 }
 
@@ -64,7 +66,8 @@ RenderStates::RenderStates(const BlendMode& theBlendMode) :
 blendMode(theBlendMode),
 transform(),
 texture  (NULL),
-shader   (NULL)
+shader   (NULL),
+shaderIsBound(false)
 {
 }
 
@@ -74,7 +77,8 @@ RenderStates::RenderStates(const Texture* theTexture) :
 blendMode(BlendAlpha),
 transform(),
 texture  (theTexture),
-shader   (NULL)
+shader   (NULL),
+shaderIsBound(false)
 {
 }
 
@@ -84,7 +88,8 @@ RenderStates::RenderStates(const Shader* theShader) :
 blendMode(BlendAlpha),
 transform(),
 texture  (NULL),
-shader   (theShader)
+shader   (theShader),
+shaderIsBound(false)
 {
 }
 
@@ -95,7 +100,8 @@ RenderStates::RenderStates(const BlendMode& theBlendMode, const Transform& theTr
 blendMode(theBlendMode),
 transform(theTransform),
 texture  (theTexture),
-shader   (theShader)
+shader   (theShader),
+shaderIsBound(false)
 {
 }
 

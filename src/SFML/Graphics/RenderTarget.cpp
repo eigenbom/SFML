@@ -238,6 +238,11 @@ Vector2i RenderTarget::mapCoordsToPixel(const Vector2f& point, const View& view)
 ////////////////////////////////////////////////////////////
 void RenderTarget::draw(const Drawable& drawable, const RenderStates& states)
 {
+    if (states.shaderIsBound && !isActive(m_id)) {
+        sf::err() << "draw() with sf::States::shaderIsBound requires the render target to be active." << std::endl;
+        assert(false);
+    }
+
     drawable.draw(*this, states);
 }
 
@@ -258,6 +263,11 @@ void RenderTarget::draw(const Vertex* vertices, std::size_t vertexCount,
             return;
         }
     #endif
+        
+    if (states.shaderIsBound && !isActive(m_id)) {
+        sf::err() << "draw() with sf::States::shaderIsBound requires the render target to be active." << std::endl;
+        assert(false);
+    }
 
     if (isActive(m_id) || setActive(true))
     {
@@ -358,6 +368,11 @@ void RenderTarget::draw(const VertexBuffer& vertexBuffer, std::size_t firstVerte
             return;
         }
     #endif
+
+    if (states.shaderIsBound && !isActive(m_id)) {
+        sf::err() << "draw() with sf::States::shaderIsBound requires the render target to be active." << std::endl;
+        assert(false);
+    }
 
     if (isActive(m_id) || setActive(true))
     {
@@ -694,7 +709,7 @@ void RenderTarget::setupDraw(bool useVertexCache, const RenderStates& states)
     }
 
     // Apply the shader
-    if (states.shader)
+    if (states.shader && !states.shaderIsBound)
         applyShader(states.shader);
 }
 
@@ -716,7 +731,7 @@ void RenderTarget::drawPrimitives(PrimitiveType type, std::size_t firstVertex, s
 void RenderTarget::cleanupDraw(const RenderStates& states)
 {
     // Unbind the shader, if any
-    if (states.shader)
+    if (states.shader && !states.shaderIsBound)
         applyShader(NULL);
 
     // If the texture we used to draw belonged to a RenderTexture, then forcibly unbind that texture.
