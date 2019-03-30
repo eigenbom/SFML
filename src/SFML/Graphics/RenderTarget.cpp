@@ -41,7 +41,6 @@
 #include <algorithm>
 #include <map>
 
-
 // GL_QUADS is unavailable on OpenGL ES, thus we need to define GL_QUADS ourselves
 #ifdef SFML_OPENGL_ES
 
@@ -103,7 +102,7 @@ namespace
             sf::err() << "sf::States::shaderIsBound requires the render target to be active." << std::endl;
             assert(false);
         }
-        else if (shader == nullptr) {
+        else if (shader == NULL) {
             sf::err() << "sf::States::shaderIsBound requires a shader in RenderStates." << std::endl;
             assert(false);
         }

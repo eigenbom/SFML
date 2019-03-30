@@ -768,7 +768,7 @@ void Shader::setUniformArray(const std::string& name, const Glsl::Vec4* vectorAr
     // Note: We don't need to flatten in this case.
     // As long as this static assertion holds.
     STATIC_ASSERT_CPP98(sizeof(Glsl::Vec4) == 4 * 4);
-    assert(vectorArray != nullptr);
+    assert(vectorArray != NULL);
     UniformBinder binder(*this, name);
     if (binder.location != -1){
         glCheck(GLEXT_glUniform4fv(binder.location, static_cast<GLsizei>(length), &vectorArray->x));

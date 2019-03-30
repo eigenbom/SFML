@@ -55,7 +55,7 @@ int main()
             states.shaderIsBound = true;
             offscreen.draw(shape, states);
         }
-        sf::Shader::bind(nullptr);
+        sf::Shader::bind(NULL);
         offscreen.setActive(false);
 				
         window.clear();
