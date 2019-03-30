@@ -24,6 +24,7 @@ if(SFML_BUILD_GRAPHICS)
     add_subdirectory(opengl)
 
     if (NOT SFML_OS_IOS)
+        add_subdirectory(test_optimisation)
         add_subdirectory(joystick)
         add_subdirectory(shader)
         add_subdirectory(island)
