@@ -49,6 +49,17 @@
 
 #endif // SFML_OPENGL_ES
 
+#if defined(SFML_SYSTEM_MACOS) || defined(SFML_SYSTEM_IOS)
+
+#define castToGlHandle(x) reinterpret_cast<GLEXT_GLhandle>(static_cast<ptrdiff_t>(x))
+#define castFromGlHandle(x) static_cast<unsigned int>(reinterpret_cast<ptrdiff_t>(x))
+
+#else
+
+#define castToGlHandle(x) (x)
+#define castFromGlHandle(x) (x)
+
+#endif
 
 namespace
 {
@@ -80,6 +91,28 @@ namespace
             return false;
 
         return true;
+    }
+
+    void checkShaderIsBoundState(sf::Uint64 id, bool glStatesSet, const sf::Shader* shader)
+    {
+        if (!glStatesSet) {
+            sf::err() << "sf::States::shaderIsBound requires the render target to have gl states set." << std::endl;
+            assert(false);
+        }
+        if (!isActive(id)) {
+            sf::err() << "sf::States::shaderIsBound requires the render target to be active." << std::endl;
+            assert(false);
+        }
+        else if (shader == nullptr) {
+            sf::err() << "sf::States::shaderIsBound requires a shader in RenderStates." << std::endl;
+            assert(false);
+        }
+        else {
+            #if defined(SFML_DEBUG)
+                GLhandleARB currentShaderHandle = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
+                assert(castFromGlHandle(currentShaderHandle) == shader->getNativeHandle());
+            #endif
+        }
     }
 
     // Convert an sf::BlendMode::Factor constant to the corresponding OpenGL constant.
@@ -238,9 +271,8 @@ Vector2i RenderTarget::mapCoordsToPixel(const Vector2f& point, const View& view)
 ////////////////////////////////////////////////////////////
 void RenderTarget::draw(const Drawable& drawable, const RenderStates& states)
 {
-    if (states.shaderIsBound && !isActive(m_id)) {
-        sf::err() << "draw() with sf::States::shaderIsBound requires the render target to be active." << std::endl;
-        assert(false);
+    if (states.shaderIsBound) {        
+        checkShaderIsBoundState(m_id, m_cache.glStatesSet, states.shader);
     }
 
     drawable.draw(*this, states);
@@ -264,9 +296,8 @@ void RenderTarget::draw(const Vertex* vertices, std::size_t vertexCount,
         }
     #endif
         
-    if (states.shaderIsBound && !isActive(m_id)) {
-        sf::err() << "draw() with sf::States::shaderIsBound requires the render target to be active." << std::endl;
-        assert(false);
+    if (states.shaderIsBound) {
+        checkShaderIsBoundState(m_id, m_cache.glStatesSet, states.shader);
     }
 
     if (isActive(m_id) || setActive(true))
@@ -369,9 +400,8 @@ void RenderTarget::draw(const VertexBuffer& vertexBuffer, std::size_t firstVerte
         }
     #endif
 
-    if (states.shaderIsBound && !isActive(m_id)) {
-        sf::err() << "draw() with sf::States::shaderIsBound requires the render target to be active." << std::endl;
-        assert(false);
+    if (states.shaderIsBound) {
+        checkShaderIsBoundState(m_id, m_cache.glStatesSet, states.shader);
     }
 
     if (isActive(m_id) || setActive(true))
@@ -550,8 +580,7 @@ void RenderTarget::resetGLStates()
 
         m_cache.enable = true;
     }
-}
-
+} 
 
 ////////////////////////////////////////////////////////////
 void RenderTarget::initialize()
