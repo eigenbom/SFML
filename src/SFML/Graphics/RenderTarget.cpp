@@ -271,10 +271,6 @@ Vector2i RenderTarget::mapCoordsToPixel(const Vector2f& point, const View& view)
 ////////////////////////////////////////////////////////////
 void RenderTarget::draw(const Drawable& drawable, const RenderStates& states)
 {
-    if (states.shaderIsBound) {        
-        checkShaderIsBoundState(m_id, m_cache.glStatesSet, states.shader);
-    }
-
     drawable.draw(*this, states);
 }
 

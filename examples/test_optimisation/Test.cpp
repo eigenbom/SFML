@@ -8,6 +8,7 @@ int main()
 
     sf::RenderTexture offscreen;
     offscreen.create(512, 512);	
+    offscreen.resetGLStates(); // NB: Need to do this to initialise the glStates
 
     const char* vertexShader = R"(#version 120
 			void main(void)
@@ -44,14 +45,7 @@ int main()
 
         if (!window.isOpen()) break;
 				
-		// window setupDraw()
-    	// window.setActive(true);
-        window.clear();
-
         offscreen.setActive(true);
-
-        // NB: Need this to trigger the first glreset
-		// TODO: Replace with a manual initialisation step?
         offscreen.clear(sf::Color::Transparent); 
         sf::Shader::bind(&shader);
         for (int i = 0; i < 8; ++i) {
@@ -63,9 +57,9 @@ int main()
         }
         sf::Shader::bind(nullptr);
         offscreen.setActive(false);
-
+				
+        window.clear();
         window.draw(sf::Sprite(offscreen.getTexture()));
-		// window endDraw()
         window.display();
     }
 
