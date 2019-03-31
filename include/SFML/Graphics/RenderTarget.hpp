@@ -475,6 +475,7 @@ private:
 		Color     lastColor;      ///< Cached colour
         bool      useVertexCache; ///< Did we previously use the vertex cache?
         Vertex    vertexCache[VertexCacheSize]; ///< Pre-transformed vertices cache
+        unsigned int lastVBO;                   ///< Cached vbo
     };
 
     ////////////////////////////////////////////////////////////

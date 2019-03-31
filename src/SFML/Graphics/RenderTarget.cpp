@@ -227,6 +227,7 @@ IntRect RenderTarget::getViewport(const View& view) const
 const VertexBuffer& RenderTarget::getSpriteVBO() {
     if (isActive(m_id) || setActive(true))
     {
+        // m_spriteVBO.getNativeHandle()
         if (m_spriteVBO.getVertexCount() == 0) {
             // Create vertex buffer
             assert(sf::VertexBuffer::isAvailable());
@@ -345,6 +346,12 @@ void RenderTarget::draw(const Vertex* vertices, std::size_t vertexCount,
 
         setupDraw(useVertexCache, states);
 
+        if (m_cache.lastVBO != 0) {
+            // Unbind any existing VBO
+            VertexBuffer::bind(NULL);
+            m_cache.lastVBO = 0;
+        }
+
         // Check if texture coordinates array is needed, and update client state accordingly
         bool enableTexCoordsArray = (states.texture || states.shader);
         if (!m_cache.enable || (enableTexCoordsArray != m_cache.texCoordsArrayEnabled))
@@ -434,21 +441,25 @@ void RenderTarget::draw(const VertexBuffer& vertexBuffer, std::size_t firstVerte
     {
         setupDraw(false, states);
 
-        // Bind vertex buffer
-        VertexBuffer::bind(&vertexBuffer);
+        if (!m_cache.enable || m_cache.lastVBO != vertexBuffer.getNativeHandle()) {
+            // Bind vertex buffer
+            VertexBuffer::bind(&vertexBuffer);
+
+            glCheck(glVertexPointer(2, GL_FLOAT, sizeof(Vertex), reinterpret_cast<const void*>(0)));
+            glCheck(glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), reinterpret_cast<const void*>(8)));
+            glCheck(glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), reinterpret_cast<const void*>(12)));
+
+            m_cache.lastVBO = vertexBuffer.getNativeHandle();
+        }
 
         // Always enable texture coordinates
         if (!m_cache.enable || !m_cache.texCoordsArrayEnabled)
             glCheck(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
 
-        glCheck(glVertexPointer(2, GL_FLOAT, sizeof(Vertex), reinterpret_cast<const void*>(0)));
-        glCheck(glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), reinterpret_cast<const void*>(8)));
-        glCheck(glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), reinterpret_cast<const void*>(12)));
-
         drawPrimitives(vertexBuffer.getPrimitiveType(), firstVertex, vertexCount);
 
         // Unbind vertex buffer
-        VertexBuffer::bind(NULL);
+        // VertexBuffer::bind(NULL);
 
         cleanupDraw(states);
 
@@ -600,6 +611,7 @@ void RenderTarget::resetGLStates()
 
         m_cache.texCoordsArrayEnabled = true;
         m_cache.useVertexCache = false;
+        m_cache.lastVBO = 0;
 
         // Set the default view
         setView(getView());
