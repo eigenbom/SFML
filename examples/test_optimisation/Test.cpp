@@ -48,7 +48,7 @@ int main()
         offscreen.setActive(true);
         offscreen.clear(sf::Color::Transparent); 
         sf::Shader::bind(&shader);
-        for (int i = 0; i < 8; ++i) {
+        for (int i = 0; i < 10; ++i) {
             shape.setPosition(i * 60, 100);
             sf::RenderStates states;
             states.shader = &shader;

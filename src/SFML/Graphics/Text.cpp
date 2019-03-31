@@ -207,7 +207,7 @@ void Text::setFillColor(const Color& color)
             for (std::size_t i = 0; i < m_vertices.getVertexCount(); ++i)
                 m_vertices[i].color = m_fillColor;
 
-            if (VertexBuffer::isAvailable())
+            if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
             {
                 if (m_verticesBuffer.getVertexCount() != m_vertices.getVertexCount())
                     m_verticesBuffer.create(m_vertices.getVertexCount());
@@ -234,7 +234,7 @@ void Text::setOutlineColor(const Color& color)
             for (std::size_t i = 0; i < m_outlineVertices.getVertexCount(); ++i)
                 m_outlineVertices[i].color = m_outlineColor;
 
-            if (VertexBuffer::isAvailable())
+            if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
             {
                 if (m_outlineVerticesBuffer.getVertexCount() != m_outlineVertices.getVertexCount())
                     m_outlineVerticesBuffer.create(m_outlineVertices.getVertexCount());
@@ -405,7 +405,7 @@ void Text::draw(RenderTarget& target, RenderStates states) const
         // Only draw the outline if there is something to draw
         if (m_outlineThickness != 0)
         {
-            if (VertexBuffer::isAvailable())
+            if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
             {
                 target.draw(m_outlineVerticesBuffer, states);
             }
@@ -415,7 +415,7 @@ void Text::draw(RenderTarget& target, RenderStates states) const
             }
         }
 
-        if (VertexBuffer::isAvailable())
+        if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
         {
             target.draw(m_verticesBuffer, states);
         }
@@ -452,7 +452,7 @@ void Text::ensureGeometryUpdate() const
     // No text: nothing to draw
     if (m_string.isEmpty())
     {
-        if (VertexBuffer::isAvailable())
+        if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
         {
             if (m_verticesBuffer.getVertexCount())
                 m_verticesBuffer.create(0);
@@ -614,7 +614,7 @@ void Text::ensureGeometryUpdate() const
     m_bounds.height = maxY - minY;
 
     // Update the vertex buffer if it is being used
-    if (VertexBuffer::isAvailable())
+    if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
     {
         if (m_verticesBuffer.getVertexCount() != m_vertices.getVertexCount())
             m_verticesBuffer.create(m_vertices.getVertexCount());

@@ -31,6 +31,7 @@
 #include <SFML/Graphics/Export.hpp>
 #include <SFML/Graphics/RenderStates.hpp>
 
+#define SFML_DRAWABLES_USE_VERTEX_BUFFERS false
 
 namespace sf
 {

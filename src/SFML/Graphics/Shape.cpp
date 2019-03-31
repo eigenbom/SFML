@@ -195,7 +195,7 @@ void Shape::update()
         m_vertices.resize(0);
         m_outlineVertices.resize(0);
 
-        if (VertexBuffer::isAvailable())
+        if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
         {
             if (m_verticesBuffer.getVertexCount())
                 m_verticesBuffer.create(0);
@@ -232,7 +232,7 @@ void Shape::update()
     updateOutline();
 
     // Update the vertex buffers if they are being used
-    if (VertexBuffer::isAvailable())
+    if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
     {
         if (m_verticesBuffer.getVertexCount() != m_vertices.getVertexCount())
             m_verticesBuffer.create(m_vertices.getVertexCount());
@@ -256,7 +256,7 @@ void Shape::draw(RenderTarget& target, RenderStates states) const
     // Render the inside
     states.texture = m_texture;
 
-    if (VertexBuffer::isAvailable())
+    if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
     {
         target.draw(m_verticesBuffer, states);
     }
@@ -270,7 +270,7 @@ void Shape::draw(RenderTarget& target, RenderStates states) const
     {
         states.texture = NULL;
 
-        if (VertexBuffer::isAvailable())
+        if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
         {
             target.draw(m_outlineVerticesBuffer, states);
         }

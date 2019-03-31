@@ -39,7 +39,7 @@ m_verticesBuffer(TrianglesStrip, VertexBuffer::Stream),
 m_texture       (NULL),
 m_textureRect   ()
 {
-    if (VertexBuffer::isAvailable())
+    if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
         m_verticesBuffer.create(4);
 }
 
@@ -50,7 +50,7 @@ m_verticesBuffer(TrianglesStrip, VertexBuffer::Stream),
 m_texture       (NULL),
 m_textureRect   ()
 {
-    if (VertexBuffer::isAvailable())
+    if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
         m_verticesBuffer.create(4);
 
     setTexture(texture);
@@ -63,7 +63,7 @@ m_verticesBuffer(TrianglesStrip, VertexBuffer::Stream),
 m_texture       (NULL),
 m_textureRect   ()
 {
-    if (VertexBuffer::isAvailable())
+    if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
         m_verticesBuffer.create(4);
 
     setTexture(texture);
@@ -93,7 +93,7 @@ void Sprite::setTextureRect(const IntRect& rectangle)
         updateTexCoords();
 
         // Update the vertex buffer if it is being used
-        if (VertexBuffer::isAvailable())
+        if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
             m_verticesBuffer.update(m_vertices);
     }
 }
@@ -109,7 +109,7 @@ void Sprite::setColor(const Color& color)
     m_vertices[3].color = color;
 
     // Update the vertex buffer if it is being used
-    if (VertexBuffer::isAvailable())
+    if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
         m_verticesBuffer.update(m_vertices);
 }
 
@@ -160,7 +160,7 @@ void Sprite::draw(RenderTarget& target, RenderStates states) const
         states.transform *= getTransform();
         states.texture = m_texture;
 
-        if (VertexBuffer::isAvailable())
+        if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
         {
             target.draw(m_verticesBuffer, states);
         }
