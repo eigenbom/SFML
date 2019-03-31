@@ -292,6 +292,14 @@ public:
     void getUniform(const std::string& name, int* values);
 
     ////////////////////////////////////////////////////////////
+    /// \brief Specify value for u_colour in the shader.
+    ///
+    /// \param colour    Value of the float scalar
+    ///
+    ////////////////////////////////////////////////////////////
+    void setColourUniform(const Glsl::Vec4& colour);
+
+    ////////////////////////////////////////////////////////////
     /// \brief Specify value for \p float uniform
     ///
     /// \param name Name of the uniform variable in GLSL
@@ -788,6 +796,7 @@ private:
     TextureTable m_textures;       ///< Texture variables in the shader, mapped to their location
     UniformTable m_uniforms;       ///< Parameters location cache
     bool         m_alwaysBind;     ///< Bind the shader every time?
+    int          m_colorLocation;  ///< Location of u_colour uniform (required)
 };
 
 inline void Shader::setBindAlways(bool always)

@@ -753,11 +753,7 @@ void RenderTarget::setupDraw(bool useVertexCache, const RenderStates& states)
         // Apply the color
         if (!m_cache.enable || states.color != m_cache.lastColor) {
             const Glsl::Vec4 colour(states.color);
-            sf::Shader* shader = const_cast<sf::Shader*>(states.shader);
-
-            // TODO: Refactor this into a shader->setColour(...) method.
-            const int spriteColourLocation = shader->getUniformLocation("u_colour");
-            shader->setUniform(spriteColourLocation, colour);
+            const_cast<sf::Shader*>(states.shader)->setColourUniform(colour);
             m_cache.lastColor = states.color;
         }
     }

@@ -471,6 +471,14 @@ void Shader::getUniform(const std::string& name, int* values)
 }
 
 ////////////////////////////////////////////////////////////
+void Shader::setColourUniform(const Glsl::Vec4& colour) {
+    if (m_colorLocation != -1) {
+        UniformBinder binder(*this, m_colorLocation);
+        glCheck(GLEXT_glUniform4f(m_colorLocation, colour.x, colour.y, colour.z, colour.w));
+    }
+}
+
+////////////////////////////////////////////////////////////
 void Shader::setUniform(const std::string& name, float x)
 {
     UniformBinder binder(*this, name);
@@ -1068,6 +1076,7 @@ bool Shader::compile(const char* vertexShaderCode, const char* geometryShaderCod
     }
 
     m_shaderProgram = castFromGlHandle(shaderProgram);
+    m_colorLocation = getUniformLocation("u_colour");
 
     // Force an OpenGL flush, so that the shader will appear updated
     // in all contexts immediately (solves problems in multi-threaded apps)
