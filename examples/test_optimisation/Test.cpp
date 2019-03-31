@@ -50,12 +50,11 @@ void loadShaders(sf::Shader& texturedShader, sf::Shader& untexturedShader) {
     }
 }
 
-int main()
-{
+void testAllDrawables() {
     sf::RenderWindow window(sf::VideoMode(640, 480), "SFML test");
 
     sf::RenderTexture offscreen;
-    offscreen.create(512, 512);	
+    offscreen.create(512, 512);
     offscreen.resetGLStates(); // NB: Need to do this to initialise the glStates
 
     sf::Shader texturedShader, untexturedShader;
@@ -63,16 +62,16 @@ int main()
 
     sf::Image image;
     image.create(8, 8);
-	for (int i=0; i<image.getSize().x; ++i) {
+    for (int i = 0; i < image.getSize().x; ++i) {
         for (int j = 0; j < image.getSize().y; ++j) {
             image.setPixel(i, j, (i + j) % 2 == 0 ? sf::Color::White : sf::Color::Black);
-        }		
-	}
-	
+        }
+    }
+
     sf::Texture texture;
     texture.loadFromImage(image);
 
-    sf::Sprite sprite (texture);
+    sf::Sprite sprite(texture);
     sprite.setOrigin(image.getSize().x / 2, image.getSize().y / 2);
     sprite.setScale(6, 6);
 
@@ -98,9 +97,9 @@ int main()
         }
 
         if (!window.isOpen()) break;
-				
+
         offscreen.setActive(true);
-        offscreen.clear(sf::Color::Transparent); 
+        offscreen.clear(sf::Color::Transparent);
         sf::Shader::bind(&texturedShader);
         for (int i = 0; i < 10; ++i) {
             sprite.setPosition(i * 60, 100);
@@ -120,10 +119,10 @@ int main()
             sf::RenderStates states;
             states.shader = &untexturedShader;
             states.shaderIsBound = true;
-        	offscreen.draw(shape, states);
+            offscreen.draw(shape, states);
         }
         sf::Shader::bind(NULL);
-		
+
         for (int i = 0; i < 10; ++i) {
             text.setPosition(i * 60, 300);
             text.setFillColor(sf::Color(255, 255, 100 + 15 * i));
@@ -132,8 +131,9 @@ int main()
             // states.color = sf::Color::White;
             offscreen.draw(text, states);
         }
+
         offscreen.setActive(false);
-				
+
         window.clear();
         window.setView(sf::View(sf::FloatRect(0, 0, offscreen.getSize().x, offscreen.getSize().y)));
         sf::Sprite offscreenSprite(offscreen.getTexture());
@@ -142,6 +142,61 @@ int main()
         window.draw(offscreenSprite, &texturedShader);
         window.display();
     }
+}
 
+void traceSpritePerf() {
+    sf::RenderWindow window(sf::VideoMode(512, 512), "SFML test");
+    window.resetGLStates(); // Manually initialise
+
+    sf::Shader texturedShader, untexturedShader;
+    loadShaders(texturedShader, untexturedShader);
+
+    sf::Image image;
+    image.create(8, 8);
+    for (int i = 0; i < image.getSize().x; ++i) {
+        for (int j = 0; j < image.getSize().y; ++j) {
+            image.setPixel(i, j, (i + j) % 2 == 0 ? sf::Color::White : sf::Color::Black);
+        }
+    }
+
+    sf::Texture texture;
+    texture.loadFromImage(image);
+
+    sf::Sprite sprite(texture);
+    sprite.setOrigin(image.getSize().x / 2, image.getSize().y / 2);
+    sprite.setScale(2, 2);
+
+    while (window.isOpen())
+    {
+        sf::Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+                window.close();
+            if ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Escape))
+                window.close();
+        }
+        if (!window.isOpen()) break;
+
+        window.clear();
+        sf::Shader::bind(&texturedShader);
+        std::srand(0);
+        for (int i = 0; i < 100; ++i){
+            sprite.setPosition(std::rand() % 512, std::rand() % 512);
+            sprite.setColor(sf::Color(std::rand()%256, std::rand() % 256, std::rand() % 256));
+            sf::RenderStates states;
+            states.shader = &texturedShader;
+            states.shaderIsBound = true;
+            window.draw(sprite, states);
+        }
+        sf::Shader::bind(NULL);
+        window.display();
+    }
+}
+
+int main()
+{
+    // testAllDrawables();
+    traceSpritePerf();
     return EXIT_SUCCESS;
 }
