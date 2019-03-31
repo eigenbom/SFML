@@ -420,7 +420,7 @@ private:
     /// \param texture Texture to apply
     ///
     ////////////////////////////////////////////////////////////
-	void applyTexture(const RenderStates& states);
+	void applyTexture(const RenderStates& states, bool applyTransformOnly = false);
 
     ////////////////////////////////////////////////////////////
     /// \brief Apply a new shader

@@ -736,7 +736,7 @@ void Texture::invalidateMipmap()
 
 
 ////////////////////////////////////////////////////////////
-void Texture::bind(const Texture* texture, CoordinateType coordinateType, const Transform* transform)
+void Texture::bind(const Texture* texture, CoordinateType coordinateType)
 {
     TransientContextLock lock;
 
@@ -746,16 +746,7 @@ void Texture::bind(const Texture* texture, CoordinateType coordinateType, const 
         glCheck(glBindTexture(GL_TEXTURE_2D, texture->m_texture));
 
         // Check if we need to define a special texture matrix
-		if (transform != NULL)
-		{
-			const float* matrix = transform->getMatrix();
-			glCheck(glMatrixMode(GL_TEXTURE));
-			glCheck(glLoadMatrixf(matrix));
-
-			// Go back to model-view mode (sf::RenderTarget relies on it)
-			glCheck(glMatrixMode(GL_MODELVIEW));
-		}
-		else if ((coordinateType == Pixels) || texture->m_pixelsFlipped)
+		if ((coordinateType == Pixels) || texture->m_pixelsFlipped)
         {
             GLfloat matrix[16] = {1.f, 0.f, 0.f, 0.f,
                                   0.f, 1.f, 0.f, 0.f,
@@ -796,6 +787,23 @@ void Texture::bind(const Texture* texture, CoordinateType coordinateType, const 
 
         // Go back to model-view mode (sf::RenderTarget relies on it)
         glCheck(glMatrixMode(GL_MODELVIEW));
+    }
+}
+
+////////////////////////////////////////////////////////////
+void Texture::bindOnly(const Texture* texture)
+{
+    TransientContextLock lock;
+
+    if (texture && texture->m_texture)
+    {
+        // Bind the texture
+        glCheck(glBindTexture(GL_TEXTURE_2D, texture->m_texture));
+    }
+    else
+    {
+        // Bind no texture
+        glCheck(glBindTexture(GL_TEXTURE_2D, 0));
     }
 }
 

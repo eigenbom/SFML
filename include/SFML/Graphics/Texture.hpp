@@ -579,7 +579,14 @@ public:
     /// \param coordinateType Type of texture coordinates to use
     ///
     ////////////////////////////////////////////////////////////
-	static void bind(const Texture* texture, CoordinateType coordinateType = Normalized, const Transform* transform = NULL);
+	static void bind(const Texture* texture, CoordinateType coordinateType = Normalized);
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Bind a texture for rendering
+    ///
+    /// \remark This is identical to bind except it doesn't set a texture transform
+    ////////////////////////////////////////////////////////////
+    static void bindOnly(const Texture* texture);
 
     ////////////////////////////////////////////////////////////
     /// \brief Get the maximum texture size allowed

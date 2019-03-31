@@ -716,11 +716,24 @@ void RenderTarget::applyTransform(const Transform& transform)
 
 
 ////////////////////////////////////////////////////////////
-void RenderTarget::applyTexture(const RenderStates& states)
+void RenderTarget::applyTexture(const RenderStates& states, bool applyTransformOnly)
 {
 	const Texture* texture = states.texture;
 	const Transform* textureTransform = states.textureTransform;
-	Texture::bind(texture, Texture::Pixels, textureTransform);
+
+    if (states.textureTransform) {
+        if (!applyTransformOnly) {
+            Texture::bindOnly(texture);
+        }
+
+        const float* matrix = states.textureTransform->getMatrix();
+        glCheck(glMatrixMode(GL_TEXTURE));
+        glCheck(glLoadMatrixf(matrix));
+        glCheck(glMatrixMode(GL_MODELVIEW));
+    }
+    else {
+        Texture::bind(texture, Texture::Pixels);
+    }
 
     m_cache.lastTextureId = texture ? texture->m_cacheId : 0;
     if (textureTransform) {
@@ -784,8 +797,10 @@ void RenderTarget::setupDraw(bool useVertexCache, const RenderStates& states)
         const float* textureMatrix = (states.textureTransform == nullptr) ? emptyTextureMatrix : states.textureTransform->getMatrix();
         const bool sameTextureTransform = (textureId == m_cache.lastTextureId) && std::equal(std::begin(m_cache.lastTextureMatrix), std::end(m_cache.lastTextureMatrix), textureMatrix);
 
-        if (!m_cache.enable || (textureId != m_cache.lastTextureId || !sameTextureTransform))
-            applyTexture(states);
+        if (!m_cache.enable || (textureId != m_cache.lastTextureId || !sameTextureTransform)) {
+            bool applyTransformOnly = m_cache.enable && textureId == m_cache.lastTextureId;
+            applyTexture(states, applyTransformOnly);
+        }
     }
 
     // Apply the shader
