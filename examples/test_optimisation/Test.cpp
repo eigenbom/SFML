@@ -2,15 +2,9 @@
 #include <SFML/Graphics.hpp>
 #include <cassert>
 
-int main()
-{
-    sf::RenderWindow window(sf::VideoMode(640, 480), "SFML test");
-
-    sf::RenderTexture offscreen;
-    offscreen.create(512, 512);	
-    offscreen.resetGLStates(); // NB: Need to do this to initialise the glStates
-
-    const char* vertexShader = R"(#version 120
+void loadShaders(sf::Shader& texturedShader, sf::Shader& untexturedShader) {
+    {
+        const char* vertexShader = R"(#version 120
 			uniform vec4 u_colour; // Colour uniform, used for new Sprite implementation
 			void main(void)
 			{
@@ -20,7 +14,7 @@ int main()
 			}
 			)";
 
-    const char* fragmentShader = R"(#version 120
+        const char* fragmentShader = R"(#version 120
 			uniform sampler2D u_tex;
 			void main(void)
 			{
@@ -29,11 +23,43 @@ int main()
 			}
 			)";
 
-    sf::Shader shader;
-    bool result = shader.loadFromMemory(vertexShader, fragmentShader);
-    assert(result);
-    shader.setUniform("u_tex", sf::Shader::CurrentTexture);
-    shader.setUniform("u_colour", sf::Glsl::Vec4(1, 1, 1, 1));
+        bool result = texturedShader.loadFromMemory(vertexShader, fragmentShader);
+        assert(result);
+        texturedShader.setUniform("u_tex", sf::Shader::CurrentTexture);
+    }
+
+    {
+        const char* vertexShader = R"(#version 120
+			uniform vec4 u_colour; // Colour uniform, used for new Sprite implementation
+			void main(void)
+			{
+				gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+				gl_FrontColor = gl_Color * u_colour;
+			}
+			)";
+
+        const char* fragmentShader = R"(#version 120
+			void main(void)
+			{
+				gl_FragColor = gl_Color;
+			}
+			)";
+
+        bool result = untexturedShader.loadFromMemory(vertexShader, fragmentShader);
+        assert(result);
+    }
+}
+
+int main()
+{
+    sf::RenderWindow window(sf::VideoMode(640, 480), "SFML test");
+
+    sf::RenderTexture offscreen;
+    offscreen.create(512, 512);	
+    offscreen.resetGLStates(); // NB: Need to do this to initialise the glStates
+
+    sf::Shader texturedShader, untexturedShader;
+    loadShaders(texturedShader, untexturedShader);
 
     sf::Image image;
     image.create(8, 8);
@@ -50,6 +76,16 @@ int main()
     sprite.setOrigin(image.getSize().x / 2, image.getSize().y / 2);
     sprite.setScale(6, 6);
 
+    sf::RectangleShape shape(sf::Vector2f(image.getSize().x, image.getSize().y));
+    shape.setScale(6, 6);
+
+    sf::Font font;
+    bool fontLoaded = font.loadFromFile("resources/sansation.ttf");
+    assert(fontLoaded);
+    sf::Text text("[:D]", font, 32);
+    text.setFillColor(sf::Color::White);
+    text.setOutlineColor(sf::Color::White);
+
     while (window.isOpen())
     {
         sf::Event event;
@@ -65,24 +101,45 @@ int main()
 				
         offscreen.setActive(true);
         offscreen.clear(sf::Color::Transparent); 
-        sf::Shader::bind(&shader);
+        sf::Shader::bind(&texturedShader);
         for (int i = 0; i < 10; ++i) {
             sprite.setPosition(i * 60, 100);
             sprite.setColor(sf::Color(255, 255, 100 + 15 * i));
-            // const sf::Color col = sf::Color(255, 255, 100 + 15 * i);
-            // const sf::Glsl::Vec4 colourAsVec4 (col.r / 255.0f, col.g / 255.0f, col.b / 255.0f, col.a / 255.0f);
-            // shader.setUniform("u_colour", colourAsVec4);
 
             sf::RenderStates states;
-            states.shader = &shader;
+            states.shader = &texturedShader;
             states.shaderIsBound = true;
             offscreen.draw(sprite, states);
         }
         sf::Shader::bind(NULL);
+
+        sf::Shader::bind(&untexturedShader);
+        for (int i = 0; i < 10; ++i) {
+            shape.setPosition(i * 60, 200);
+            shape.setFillColor(sf::Color(255, 255, 100 + 15 * i));
+            sf::RenderStates states;
+            states.shader = &untexturedShader;
+            states.shaderIsBound = true;
+        	offscreen.draw(shape, states);
+        }
+        sf::Shader::bind(NULL);
+		
+        for (int i = 0; i < 10; ++i) {
+            text.setPosition(i * 60, 300);
+            text.setFillColor(sf::Color(255, 255, 100 + 15 * i));
+            sf::RenderStates states;
+            states.shader = &texturedShader;
+            // states.color = sf::Color::White;
+            offscreen.draw(text, states);
+        }
         offscreen.setActive(false);
 				
         window.clear();
-        window.draw(sf::Sprite(offscreen.getTexture()), &shader);
+        window.setView(sf::View(sf::FloatRect(0, 0, offscreen.getSize().x, offscreen.getSize().y)));
+        sf::Sprite offscreenSprite(offscreen.getTexture());
+        offscreenSprite.setScale(1, -1);
+        offscreenSprite.setPosition(0, offscreen.getSize().y);
+        window.draw(offscreenSprite, &texturedShader);
         window.display();
     }
 

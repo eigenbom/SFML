@@ -294,6 +294,8 @@ public:
     ////////////////////////////////////////////////////////////
     /// \brief Specify value for u_colour in the shader.
     ///
+    /// \remark Shader must be bound!
+    ///
     /// \param colour    Value of the float scalar
     ///
     ////////////////////////////////////////////////////////////
