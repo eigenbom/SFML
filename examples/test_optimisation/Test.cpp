@@ -146,25 +146,27 @@ void testAllDrawables() {
 
 void traceSpritePerf() {
     sf::RenderWindow window(sf::VideoMode(512, 512), "SFML test");
-    window.resetGLStates(); // Manually initialise
+    window.resetGLStates(); // NB: Need to manually initialise
 
     sf::Shader texturedShader, untexturedShader;
     loadShaders(texturedShader, untexturedShader);
 
-    sf::Image image;
-    image.create(8, 8);
-    for (int i = 0; i < image.getSize().x; ++i) {
-        for (int j = 0; j < image.getSize().y; ++j) {
-            image.setPixel(i, j, (i + j) % 2 == 0 ? sf::Color::White : sf::Color::Black);
-        }
-    }
+    sf::Texture textureAB;
+    textureAB.loadFromFile("resources/ab.png");
 
-    sf::Texture texture;
-    texture.loadFromImage(image);
+    sf::Texture textureA;
+    textureA.loadFromFile("resources/ab.png", sf::IntRect(0, 0, 32, 32));
+
+    sf::Texture textureB;
+    textureB.loadFromFile("resources/ab.png", sf::IntRect(32, 0, 32, 32));
 	
-    sf::Sprite sprite(texture);
-    sprite.setOrigin(image.getSize().x / 2, image.getSize().y / 2);
-    sprite.setScale(2, 2);
+    sf::Sprite spriteA(textureAB, sf::IntRect(0, 0, 32, 32));
+    spriteA.setOrigin(16, 16);
+    spriteA.setScale(2, 2);
+
+    sf::Sprite spriteB(textureAB, sf::IntRect(32, 0, 32, 32));
+    spriteB.setOrigin(16, 16);
+    spriteB.setScale(2, 2);
 
     while (window.isOpen())
     {
@@ -182,6 +184,7 @@ void traceSpritePerf() {
         sf::Shader::bind(&texturedShader);
         std::srand(0);
         for (int i = 0; i < 100; ++i){
+            sf::Sprite& sprite = (std::rand() % 8 > 4) ? spriteA : spriteB;
             sprite.setPosition(std::rand() % 512, std::rand() % 512);
             sprite.setColor(sf::Color(std::rand()%256, std::rand() % 256, std::rand() % 256));
             sf::RenderStates states;
