@@ -471,7 +471,7 @@ void Shader::getUniform(const std::string& name, int* values)
 }
 
 ////////////////////////////////////////////////////////////
-void Shader::setColourUniform(const Glsl::Vec4& colour) {
+void Shader::setColourUniform(const Glsl::Vec4& colour) const {
     if (m_colorLocation != -1) {
         glCheck(GLEXT_glUniform4f(m_colorLocation, colour.x, colour.y, colour.z, colour.w));
     }

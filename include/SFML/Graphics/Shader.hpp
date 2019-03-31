@@ -299,7 +299,7 @@ public:
     /// \param colour    Value of the float scalar
     ///
     ////////////////////////////////////////////////////////////
-    void setColourUniform(const Glsl::Vec4& colour);
+    void setColourUniform(const Glsl::Vec4& colour) const;
 
     ////////////////////////////////////////////////////////////
     /// \brief Specify value for \p float uniform

@@ -808,12 +808,11 @@ void RenderTarget::setupDraw(bool useVertexCache, const RenderStates& states)
         applyShader(states.shader);
 
     if (states.shader) {
+        // NOTE: shader is bound at this point
         // Apply the color
         if (!m_cache.enable || states.color != m_cache.lastColor) {
             const Glsl::Vec4 colour(states.color);
-
-            // NOTE: shader is bound at this point
-            const_cast<sf::Shader*>(states.shader)->setColourUniform(colour);
+            states.shader->setColourUniform(colour);
             m_cache.lastColor = states.color;
         }
     }
