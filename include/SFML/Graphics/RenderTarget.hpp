@@ -37,13 +37,13 @@
 #include <SFML/Graphics/RenderStates.hpp>
 #include <SFML/Graphics/PrimitiveType.hpp>
 #include <SFML/Graphics/Vertex.hpp>
+#include <SFML/Graphics/VertexBuffer.hpp>
 #include <SFML/System/NonCopyable.hpp>
 
 
 namespace sf
 {
 class Drawable;
-class VertexBuffer;
 
 ////////////////////////////////////////////////////////////
 /// \brief Base class for all render targets (window, texture, ...)
@@ -128,6 +128,11 @@ public:
     ///
     ////////////////////////////////////////////////////////////
     IntRect getViewport(const View& view) const;
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Get the unit vertex buffer object, for Sprite rendering
+    ////////////////////////////////////////////////////////////
+    const VertexBuffer& getSpriteVBO();
 
     ////////////////////////////////////////////////////////////
     /// \brief Convert a point from target coordinates to world
@@ -479,6 +484,7 @@ private:
     View        m_view;        ///< Current view
     StatesCache m_cache;       ///< Render states cache
     Uint64      m_id;          ///< Unique number that identifies the RenderTarget
+    VertexBuffer m_spriteVBO; ///< A unit-square VBO
 };
 
 } // namespace sf

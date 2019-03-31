@@ -179,7 +179,8 @@ void Sprite::draw(RenderTarget& target, RenderStates states) const
         }
         else
         {
-            target.draw(m_vertices, 4, TriangleStrip, states);
+            // target.draw(m_vertices, 4, TriangleStrip, states);
+            target.draw(target.getSpriteVBO(), states);
         }
     }
 }

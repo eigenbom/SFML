@@ -161,7 +161,8 @@ RenderTarget::RenderTarget() :
 m_defaultView(),
 m_view       (),
 m_cache      (),
-m_id         (0)
+m_id         (0),
+m_spriteVBO(sf::TrianglesStrip, sf::VertexBuffer::Static)
 {
     m_cache.glStatesSet = false;
 }
@@ -222,6 +223,36 @@ IntRect RenderTarget::getViewport(const View& view) const
                    static_cast<int>(0.5f + height * viewport.height));
 }
 
+////////////////////////////////////////////////////////////
+const VertexBuffer& RenderTarget::getSpriteVBO() {
+    if (isActive(m_id) || setActive(true))
+    {
+        if (m_spriteVBO.getVertexCount() == 0) {
+            // Create vertex buffer
+            assert(sf::VertexBuffer::isAvailable());
+            bool createdVBO = m_spriteVBO.create(4);
+            assert(createdVBO);
+
+            Vertex vertices[4];
+            vertices[0].position = sf::Vector2f(0.0f, 0.0f);
+            vertices[1].position = sf::Vector2f(0.0f, 1.0f);
+            vertices[2].position = sf::Vector2f(1.0f, 0.0f);
+            vertices[3].position = sf::Vector2f(1.0f, 1.0f);
+            vertices[0].texCoords = sf::Vector2f(0.0f, 0.0f);
+            vertices[1].texCoords = sf::Vector2f(0.0f, 1.0f);
+            vertices[2].texCoords = sf::Vector2f(1.0f, 0.0f);
+            vertices[3].texCoords = sf::Vector2f(1.0f, 1.0f);
+            vertices[0].color = sf::Color::White;
+            vertices[1].color = sf::Color::White;
+            vertices[2].color = sf::Color::White;
+            vertices[3].color = sf::Color::White;
+            bool updatedVBO = m_spriteVBO.update(vertices);
+            assert(updatedVBO);
+        }
+    }
+
+    return m_spriteVBO;
+}
 
 ////////////////////////////////////////////////////////////
 Vector2f RenderTarget::mapPixelToCoords(const Vector2i& point) const
@@ -566,8 +597,8 @@ void RenderTarget::resetGLStates()
         if (vertexBufferAvailable)
             glCheck(VertexBuffer::bind(NULL));
 
-        m_cache.texCoordsArrayEnabled = true;
 
+        m_cache.texCoordsArrayEnabled = true;
         m_cache.useVertexCache = false;
 
         // Set the default view

@@ -161,7 +161,7 @@ void traceSpritePerf() {
 
     sf::Texture texture;
     texture.loadFromImage(image);
-
+	
     sf::Sprite sprite(texture);
     sprite.setOrigin(image.getSize().x / 2, image.getSize().y / 2);
     sprite.setScale(2, 2);
