@@ -233,6 +233,8 @@ public:
     /// \param drawable Object to draw
     /// \param states   Render states to use for drawing
     ///
+    /// \remark NOTE: If drawing a sf::Sprite then states.shader is required to be non-null.
+    ///
     ////////////////////////////////////////////////////////////
     void draw(const Drawable& drawable, const RenderStates& states = RenderStates::Default);
 
