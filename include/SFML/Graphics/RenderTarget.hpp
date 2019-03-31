@@ -60,6 +60,13 @@ public:
     virtual ~RenderTarget();
 
     ////////////////////////////////////////////////////////////
+    /// \brief Setup any remaining GL states for this render target
+    ///
+    /// \remark Call this once before using the rendertarget.
+    ////////////////////////////////////////////////////////////
+    void setupGLStates();
+
+    ////////////////////////////////////////////////////////////
     /// \brief Clear the entire target with a single color
     ///
     /// This function is usually called once every frame,

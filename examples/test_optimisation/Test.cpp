@@ -55,7 +55,6 @@ void testAllDrawables() {
 
     sf::RenderTexture offscreen;
     offscreen.create(512, 512);
-    offscreen.resetGLStates(); // NB: Need to do this to initialise the glStates
 
     sf::Shader texturedShader, untexturedShader;
     loadShaders(texturedShader, untexturedShader);
@@ -97,8 +96,8 @@ void testAllDrawables() {
         }
 
         if (!window.isOpen()) break;
-
-        offscreen.setActive(true);
+		
+        offscreen.setupGLStates();
         offscreen.clear(sf::Color::Transparent);
         sf::Shader::bind(&texturedShader);
         for (int i = 0; i < 10; ++i) {
@@ -132,8 +131,7 @@ void testAllDrawables() {
             offscreen.draw(text, states);
         }
 
-        offscreen.setActive(false);
-
+        window.setupGLStates();
         window.clear();
         window.setView(sf::View(sf::FloatRect(0, 0, offscreen.getSize().x, offscreen.getSize().y)));
         sf::Sprite offscreenSprite(offscreen.getTexture());
@@ -146,7 +144,7 @@ void testAllDrawables() {
 
 void traceSpritePerf() {
     sf::RenderWindow window(sf::VideoMode(512, 512), "SFML test");
-    window.resetGLStates(); // NB: Need to manually initialise
+    
 
     sf::Shader texturedShader, untexturedShader;
     loadShaders(texturedShader, untexturedShader);
@@ -180,6 +178,7 @@ void traceSpritePerf() {
         }
         if (!window.isOpen()) break;
 
+        window.setupGLStates();
         window.clear();
         sf::Shader::bind(&texturedShader);
         std::srand(0);

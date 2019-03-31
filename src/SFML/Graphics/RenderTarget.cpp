@@ -173,6 +173,12 @@ RenderTarget::~RenderTarget()
 {
 }
 
+////////////////////////////////////////////////////////////
+void RenderTarget::setupGLStates()
+{
+    if (!m_cache.glStatesSet)
+        resetGLStates();
+}
 
 ////////////////////////////////////////////////////////////
 void RenderTarget::clear(const Color& color)
