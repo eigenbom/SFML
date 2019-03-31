@@ -680,6 +680,12 @@ void RenderTarget::applyTexture(const RenderStates& states)
 	Texture::bind(texture, Texture::Pixels, textureTransform);
 
     m_cache.lastTextureId = texture ? texture->m_cacheId : 0;
+    if (textureTransform) {
+        std::copy(textureTransform->getMatrix(), textureTransform->getMatrix() + 16, m_cache.lastTextureMatrix);
+    }
+    else {
+        std::fill(std::begin(m_cache.lastTextureMatrix), std::end(m_cache.lastTextureMatrix), 0.0f);
+    }
 }
 
 
@@ -730,7 +736,12 @@ void RenderTarget::setupDraw(bool useVertexCache, const RenderStates& states)
     else
     {
         Uint64 textureId = states.texture ? states.texture->m_cacheId : 0;
-        if (textureId != m_cache.lastTextureId || states.textureTransform != NULL)
+
+        static const float emptyTextureMatrix[16] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+        const float* textureMatrix = (states.textureTransform == nullptr) ? emptyTextureMatrix : states.textureTransform->getMatrix();
+        const bool sameTextureTransform = (textureId == m_cache.lastTextureId) && std::equal(std::begin(m_cache.lastTextureMatrix), std::end(m_cache.lastTextureMatrix), textureMatrix);
+
+        if (textureId != m_cache.lastTextureId || !sameTextureTransform)
             applyTexture(states);
     }
 
