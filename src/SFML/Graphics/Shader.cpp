@@ -43,7 +43,7 @@
 
 #ifdef SFML_DEBUG
     // Enable this to output the shader log
-    #define SFML_PRINT_SHADER_INFO_LOG
+    // #define SFML_PRINT_SHADER_INFO_LOG
 #endif
 
 #ifndef SFML_OPENGL_ES
@@ -1096,6 +1096,17 @@ bool Shader::compile(const char* vertexShaderCode, const char* geometryShaderCod
 
     m_shaderProgram = castFromGlHandle(shaderProgram);
     m_colorLocation = getUniformLocation("u_colour");
+
+#ifdef SFML_DEBUG
+    if (m_colorLocation == -1) {
+        // Print out shaders so we can find the missing u_colour
+        err() << "Failed to find u_colour in shader!" << std::endl
+            << "Vertex Shader: " << std::endl 
+            << (vertexShaderCode ? vertexShaderCode : "(No vertex shader!)") << std::endl
+            << "Fragment Shader: " << std::endl 
+            << (fragmentShaderCode ? fragmentShaderCode : "(No fragment shader!)") << std::endl;
+    }
+#endif
 
     // Force an OpenGL flush, so that the shader will appear updated
     // in all contexts immediately (solves problems in multi-threaded apps)
