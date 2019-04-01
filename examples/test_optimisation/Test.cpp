@@ -101,17 +101,15 @@ void testAllDrawables() {
         offscreen.setupGLStates();
         offscreen.clear(sf::Color::Transparent);
 
-		// BUG: Why isn't text appearing here??
         for (int i = 0; i < 10; ++i) {
             text.setPosition(i * 60, 300);
             text.setFillColor(sf::Color(255, 255, 100 + 15 * i));
             offscreen.draw(text);
         }
 
-        /*
         sf::Shader::bind(&texturedShader);
         for (int i = 0; i < 10; ++i) {
-            text.setPosition(i * 60, 300);
+            text.setPosition(i * 60, 400);
             text.setFillColor(sf::Color(255, 255, 100 + 15 * i));
             sf::RenderStates states;
             states.shader = &texturedShader;
@@ -143,7 +141,6 @@ void testAllDrawables() {
             offscreen.draw(shape, states);
         }
         sf::Shader::bind(NULL);
-		*/
 
         window.setupGLStates();
         window.clear();
@@ -210,93 +207,10 @@ void traceSpritePerf() {
     }
 }
 
-void textBug() {
-    sf::RenderWindow window(sf::VideoMode(640, 480), "SFML test");
-
-    sf::RenderTexture offscreen;
-    offscreen.create(512, 512);
-
-    sf::Shader texturedShader, untexturedShader;
-    loadShaders(texturedShader, untexturedShader);
-
-    sf::Font font;
-    bool fontLoaded = font.loadFromFile("resources/sansation.ttf");
-    assert(fontLoaded);
-    
-    sf::Text text("FBO", font, 32);
-    text.setFillColor(sf::Color::White);
-    text.setOutlineColor(sf::Color::Transparent);
-
-    sf::Text text2("WIN", font, 32);
-    text2.setFillColor(sf::Color::White);
-    text2.setOutlineColor(sf::Color::Transparent);
-
-    // Flush an empty frame for tracing
-    window.display();
-
-    while (window.isOpen())
-    {
-        sf::Event event;
-        while (window.pollEvent(event))
-        {
-            if (event.type == sf::Event::Closed)
-                window.close();
-            if ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Escape))
-                window.close();
-        }
-
-        if (!window.isOpen()) break;
-
-        // offscreen.clear(sf::Color::Transparent);
-        offscreen.clear(sf::Color::Red);
-
-        //////////////////////////////////////////////////////////
-        // BUG: Why is this text hidden?
-        //
-        // Not the view...
-        // offscreen.setView(offscreen.getDefaultView());
-        //////////////////////////////////////////////////////////
-        
-        for (int i = 0; i < 1; ++i) {
-            text.setPosition(i * 60, 300);
-            text.setFillColor(sf::Color(0, 0, 255));
-            offscreen.draw(text);
-        }
-        offscreen.display();
-
-        static int counter = 0;
-        counter++;
-        if (counter == 5) {
-            std::cout << "Saving to C:\\tmp\\test.png";
-            offscreen.getTexture().copyToImage().saveToFile("C:\\tmp\\test.png");
-        }
-
-        window.clear();
-
-        /*
-        window.setView(window.getDefaultView());
-        for (int i = 0; i < 1; ++i) {
-            text2.setPosition(i * 60, 50);
-            text2.setFillColor(sf::Color(0, 255, 0));
-            window.draw(text2);
-        }
-        */
-
-        window.setView(sf::View(sf::FloatRect(0, 0, offscreen.getSize().x, offscreen.getSize().y)));
-        sf::Sprite offscreenSprite(offscreen.getTexture());
-        offscreenSprite.setScale(1, -1);
-        offscreenSprite.setPosition(0, offscreen.getSize().y);
-        window.draw(offscreenSprite, &texturedShader);
-
-        window.display();
-    }
-}
-
 int main()
 {
-    // testAllDrawables();
+    testAllDrawables();
     // traceSpritePerf();
-    textBug();
-
+    
     return EXIT_SUCCESS;
 }
