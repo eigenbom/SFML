@@ -809,6 +809,13 @@ void RenderTarget::setupDraw(bool useVertexCache, const RenderStates& states)
         }
     }
 
+#if defined(SFML_DEBUG)
+    if (states.shader == NULL) {
+        GLhandleARB currentShaderHandle = glGetHandleARB(GL_PROGRAM_OBJECT_ARB);
+        assert(castFromGlHandle(currentShaderHandle) == 0);
+    }
+#endif
+
     // Apply the shader
     if (states.shader && !states.shaderIsBound)
         applyShader(states.shader);

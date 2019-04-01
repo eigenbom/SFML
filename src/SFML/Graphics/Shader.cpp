@@ -862,30 +862,6 @@ void Shader::bind(const Shader* shader)
     }
 }
 
-void Shader::bindProgram(const Shader* shader)
-{
-    TransientContextLock lock;
-
-    // Make sure that we can use shaders
-    if (!isAvailable())
-    {
-        err() << "Failed to bind or unbind shader: your system doesn't support shaders "
-            << "(you should test Shader::isAvailable() before trying to use the Shader class)" << std::endl;
-        return;
-    }
-
-    if (shader && shader->m_shaderProgram)
-    {
-        // Enable the program
-        glCheck(GLEXT_glUseProgramObject(castToGlHandle(shader->m_shaderProgram)));
-    }
-    else
-    {
-        // Bind no shader
-        glCheck(GLEXT_glUseProgramObject(0));
-    }
-}
-
 ////////////////////////////////////////////////////////////
 bool Shader::isAvailable()
 {

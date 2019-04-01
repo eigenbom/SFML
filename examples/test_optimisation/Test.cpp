@@ -27,6 +27,7 @@ void loadShaders(sf::Shader& texturedShader, sf::Shader& untexturedShader) {
         bool result = texturedShader.loadFromMemory(vertexShader, fragmentShader);
         assert(result);
         texturedShader.setUniform("u_tex", sf::Shader::CurrentTexture);
+        texturedShader.setAutoBind(false);
     }
 
     {
@@ -47,6 +48,7 @@ void loadShaders(sf::Shader& texturedShader, sf::Shader& untexturedShader) {
 			)";
 
         bool result = untexturedShader.loadFromMemory(vertexShader, fragmentShader);
+        untexturedShader.setAutoBind(false);
         assert(result);
     }
 }

@@ -679,8 +679,15 @@ public:
     ////////////////////////////////////////////////////////////
     unsigned int getNativeHandle() const;
 
-    /// If true, always bind when setting uniforms, otherwise never bind (application must do it).
-    void setBindAlways(bool always);
+    ////////////////////////////////////////////////////////////
+    /// \brief Enable auto-binding (true by default)
+    ///
+    /// If enabled then a shader will auto-bind when setting uniforms.
+    /// If disabled the application must manually call Shader::bind before
+    /// setting uniforms. This is so they can be batched together.
+    ///
+    ////////////////////////////////////////////////////////////
+    void setAutoBind(bool always);
 
     ////////////////////////////////////////////////////////////
     /// \brief Bind a shader for rendering
@@ -704,10 +711,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////
     static void bind(const Shader* shader);
-
-    /// Bind just the shader, and not the textures.
-    static void bindProgram(const Shader* shader);
-
+    
     ////////////////////////////////////////////////////////////
     /// \brief Tell whether or not the system supports shaders
     ///
@@ -801,7 +805,7 @@ private:
     int          m_colorLocation;  ///< Location of u_colour uniform (required)
 };
 
-inline void Shader::setBindAlways(bool always)
+inline void Shader::setAutoBind(bool always)
 {
     m_alwaysBind = always;
 }
