@@ -41,11 +41,6 @@
 #include <vector>
 #include <cassert>
 
-#ifdef SFML_DEBUG
-    // Enable this to output the shader log
-    // #define SFML_PRINT_SHADER_INFO_LOG
-#endif
-
 #ifndef SFML_OPENGL_ES
 
 #if defined(SFML_SYSTEM_MACOS) || defined(SFML_SYSTEM_IOS)
@@ -266,7 +261,8 @@ m_shaderProgram (0),
 m_currentTexture(-1),
 m_textures      (),
 m_uniforms      (),
-m_alwaysBind(true)
+m_alwaysBind(true),
+m_colorLocation(-1)
 {
 }
 
@@ -1001,14 +997,6 @@ bool Shader::compile(const char* vertexShaderCode, const char* geometryShaderCod
             glCheck(GLEXT_glDeleteObject(shaderProgram));
             return false;
         }
-        else {
-#ifdef SFML_PRINT_SHADER_INFO_LOG
-            char log[1024];
-            glCheck(GLEXT_glGetInfoLog(vertexShader, sizeof(log), 0, log));
-            sf::err() << "Vertex shader compiled. Log:" << std::endl
-                << log << std::endl;
-#endif
-        }
 
         // Attach the shader to the program, and delete it (not needed anymore)
         glCheck(GLEXT_glAttachObject(shaderProgram, vertexShader));
@@ -1064,14 +1052,6 @@ bool Shader::compile(const char* vertexShaderCode, const char* geometryShaderCod
             glCheck(GLEXT_glDeleteObject(shaderProgram));
             return false;
         }
-        else {
-#ifdef SFML_PRINT_SHADER_INFO_LOG
-            char log[1024];
-            glCheck(GLEXT_glGetInfoLog(fragmentShader, sizeof(log), 0, log));
-            err() << "Fragment shader compiled. Log:" << std::endl
-                << log << std::endl;
-#endif
-        }
 
         // Attach the shader to the program, and delete it (not needed anymore)
         glCheck(GLEXT_glAttachObject(shaderProgram, fragmentShader));
@@ -1095,18 +1075,11 @@ bool Shader::compile(const char* vertexShaderCode, const char* geometryShaderCod
     }
 
     m_shaderProgram = castFromGlHandle(shaderProgram);
-    m_colorLocation = getUniformLocation("u_colour");
 
-#ifdef SFML_DEBUG
-    if (m_colorLocation == -1) {
-        // Print out shaders so we can find the missing u_colour
-        err() << "Failed to find u_colour in shader!" << std::endl
-            << "Vertex Shader: " << std::endl 
-            << (vertexShaderCode ? vertexShaderCode : "(No vertex shader!)") << std::endl
-            << "Fragment Shader: " << std::endl 
-            << (fragmentShaderCode ? fragmentShaderCode : "(No fragment shader!)") << std::endl;
-    }
-#endif
+    // Get u_colour location if it exists
+    // Note: if vertex shader contains a u_colour it may be compiled out if
+    //       the fragment shader doesn't use gl_Color
+    m_colorLocation = GLEXT_glGetUniformLocation(castToGlHandle(m_shaderProgram), "u_colour");
 
     // Force an OpenGL flush, so that the shader will appear updated
     // in all contexts immediately (solves problems in multi-threaded apps)
