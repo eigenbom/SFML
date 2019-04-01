@@ -352,7 +352,7 @@ void RenderTarget::draw(const Vertex* vertices, std::size_t vertexCount,
 
         setupDraw(useVertexCache, states);
 
-        if (m_cache.lastVBO != 0) {
+        if (!m_cache.enable || m_cache.lastVBO != 0) {
             // Unbind any existing VBO
             VertexBuffer::bind(NULL);
             m_cache.lastVBO = 0;
@@ -455,6 +455,9 @@ void RenderTarget::draw(const VertexBuffer& vertexBuffer, std::size_t firstVerte
             glCheck(glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), reinterpret_cast<const void*>(8)));
             glCheck(glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), reinterpret_cast<const void*>(12)));
 
+            // Note: we unbind vertex buffer when necessary.
+            // VertexBuffer::bind(NULL);
+
             m_cache.lastVBO = vertexBuffer.getNativeHandle();
         }
 
@@ -463,9 +466,6 @@ void RenderTarget::draw(const VertexBuffer& vertexBuffer, std::size_t firstVerte
             glCheck(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
 
         drawPrimitives(vertexBuffer.getPrimitiveType(), firstVertex, vertexCount);
-
-        // Unbind vertex buffer
-        // VertexBuffer::bind(NULL);
 
         cleanupDraw(states);
 
