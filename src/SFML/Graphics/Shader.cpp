@@ -41,6 +41,10 @@
 #include <vector>
 #include <cassert>
 
+#ifdef SFML_DEBUG
+    // Enable this to output the shader log
+    #define SFML_PRINT_SHADER_INFO_LOG
+#endif
 
 #ifndef SFML_OPENGL_ES
 
@@ -997,6 +1001,14 @@ bool Shader::compile(const char* vertexShaderCode, const char* geometryShaderCod
             glCheck(GLEXT_glDeleteObject(shaderProgram));
             return false;
         }
+        else {
+#ifdef SFML_PRINT_SHADER_INFO_LOG
+            char log[1024];
+            glCheck(GLEXT_glGetInfoLog(vertexShader, sizeof(log), 0, log));
+            sf::err() << "Vertex shader compiled. Log:" << std::endl
+                << log << std::endl;
+#endif
+        }
 
         // Attach the shader to the program, and delete it (not needed anymore)
         glCheck(GLEXT_glAttachObject(shaderProgram, vertexShader));
@@ -1051,6 +1063,14 @@ bool Shader::compile(const char* vertexShaderCode, const char* geometryShaderCod
             glCheck(GLEXT_glDeleteObject(fragmentShader));
             glCheck(GLEXT_glDeleteObject(shaderProgram));
             return false;
+        }
+        else {
+#ifdef SFML_PRINT_SHADER_INFO_LOG
+            char log[1024];
+            glCheck(GLEXT_glGetInfoLog(fragmentShader, sizeof(log), 0, log));
+            err() << "Fragment shader compiled. Log:" << std::endl
+                << log << std::endl;
+#endif
         }
 
         // Attach the shader to the program, and delete it (not needed anymore)
