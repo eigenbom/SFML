@@ -305,12 +305,52 @@ void textureBindingBug() {
     }
 }
 
-void renderTargetBug() {
+void renderThingToTarget(sf::RenderTarget& target, sf::Shader& shader, sf::Texture& texture) {
+    sf::Shader::bindProgram(&shader);
+    sf::Vector2f viewSize = (sf::Vector2f) target.getSize();
+    shader.setUniform("u_tex", sf::Shader::CurrentTexture);
+
+    sf::Color colourTop = sf::Color(255, 255, 255);
+    sf::Color colourBottom = sf::Color(0, 0, 0);
+
+    sf::Vertex v[4];
+
+    v[0].position = sf::Vector2f(0, 0);
+    v[1].position = sf::Vector2f(viewSize.x, 0);
+    v[2].position = sf::Vector2f(viewSize.x, viewSize.y);
+    v[3].position = sf::Vector2f(0, viewSize.y);
+	
+    v[0].color = colourTop;
+    v[1].color = colourTop;
+    v[2].color = colourBottom;
+    v[3].color = colourBottom;
+
+    v[0].texCoords = sf::Vector2f(0, 0);
+    v[1].texCoords = sf::Vector2f(32, 0);
+    v[2].texCoords = sf::Vector2f(32, 32);
+    v[3].texCoords = sf::Vector2f(0, 32);
+
+    sf::RenderStates states;
+    states.shader = &shader;
+    states.shaderIsBound = true;
+    states.texture = &texture;
+    target.draw(v, 4, sf::PrimitiveType::Quads, states);
+
+    sf::Shader::bindProgram(NULL);	
+}
+
+void traceContextRedundancy() {
     sf::RenderWindow window(sf::VideoMode(512, 512), "SFML test");
     window.setupGLStates();
     window.display();
 
-    sf::Shader shader1, shader2;
+
+
+    sf::RenderTexture targetA, targetB;
+    targetA.create(512, 512);
+    targetB.create(512, 512);
+
+    sf::Shader shader;
     const char* vertexShader = R"(#version 120
 	uniform vec4 u_colour; // Colour uniform, used for new Sprite implementation
 	void main(void)
@@ -330,19 +370,12 @@ void renderTargetBug() {
 	}
 	)";
 
-    bool result = shader1.loadFromMemory(vertexShader, fragmentShader);
+    bool result = shader.loadFromMemory(vertexShader, fragmentShader);
     assert(result);
-    shader1.setAutoBind(false);
+    shader.setAutoBind(false);
 
-    result = shader2.loadFromMemory(vertexShader, fragmentShader);
-    assert(result);
-    shader2.setAutoBind(false);
-
-    sf::Texture textureA;
-    textureA.loadFromFile("resources/ab.png", sf::IntRect(0, 0, 32, 32));
-
-    sf::Texture textureB;
-    textureB.loadFromFile("resources/ab.png", sf::IntRect(32, 0, 32, 32));
+    sf::Texture texture;
+    texture.loadFromFile("resources/ab.png", sf::IntRect(0, 0, 32, 32));
 
     while (window.isOpen())
     {
@@ -356,90 +389,30 @@ void renderTargetBug() {
         }
         if (!window.isOpen()) break;
 
+        targetA.setActive(true);
+        targetA.setupGLStates();
+        renderThingToTarget(targetA, shader, texture);
+        targetA.display();
+        targetA.setActive(false);
+
+        targetB.setActive(true);
+    	targetB.setupGLStates();
+        renderThingToTarget(targetB, shader, texture);
+        targetB.display();
+        targetB.setActive(false);
+
         window.setupGLStates();
-        window.clear(sf::Color::Blue);
 
-        std::srand(0);
-
-        sf::Shader::bindProgram(&shader1);
-        for (int i = 0; i < 2; ++i) {
-
-            sf::Vector2f viewSize = (sf::Vector2f) window.getSize();
-
-            // shader.setUniform("u_tex", (i == 0) ? textureA : textureB);
-            shader1.setUniform("u_tex", sf::Shader::CurrentTexture);
-
-            sf::Color colourTop = sf::Color(255, 255, 255);
-            sf::Color colourBottom = sf::Color(0, 0, 0);
-
-            sf::Vertex v[4];
-
-            v[0].position = sf::Vector2f(0, 0);
-            v[1].position = sf::Vector2f(viewSize.x / 2, 0);
-            v[2].position = sf::Vector2f(viewSize.x / 2, viewSize.y / 2);
-            v[3].position = sf::Vector2f(0, viewSize.y / 2);
-
-            if (i == 1) {
-                for (int j = 0; j < 4; ++j) v[j].position.x += viewSize.x / 2;
-            }
-
-            v[0].color = colourTop;
-            v[1].color = colourTop;
-            v[2].color = colourBottom;
-            v[3].color = colourBottom;
-
-            v[0].texCoords = sf::Vector2f(0, 0);
-            v[1].texCoords = sf::Vector2f(32, 0);
-            v[2].texCoords = sf::Vector2f(32, 32);
-            v[3].texCoords = sf::Vector2f(0, 32);
-
-            sf::RenderStates states;
-            states.shader = &shader1;
-            states.shaderIsBound = true;
-            states.texture = (i == 0) ? &textureA : &textureB;
-            window.draw(v, 4, sf::PrimitiveType::Quads, states);
+        if (false && true){
+            sf::RenderTexture& tex = targetA;
+            window.setView(sf::View(sf::FloatRect(0, 0, tex.getSize().x, tex.getSize().y)));
+            sf::Sprite sprite(tex.getTexture());
+            sprite.setScale(1, 1);
+            sf::Shader::bind(&shader);
+            shader.setUniform("u_tex", sf::Shader::CurrentTexture);
+            window.draw(sprite, &shader);
+            sf::Shader::bind(NULL);
         }
-        sf::Shader::bindProgram(NULL);
-
-        sf::Shader::bindProgram(&shader2);
-        for (int i = 0; i < 2; ++i) {
-
-            sf::Vector2f viewSize = (sf::Vector2f) window.getSize();
-
-            // shader.setUniform("u_tex", (i == 0) ? textureA : textureB);
-            shader2.setUniform("u_tex", sf::Shader::CurrentTexture);
-
-            sf::Color colourTop = sf::Color(255, 255, 255);
-            sf::Color colourBottom = sf::Color(0, 0, 0);
-
-            sf::Vertex v[4];
-
-            v[0].position = sf::Vector2f(0, viewSize.y / 2);
-            v[1].position = sf::Vector2f(viewSize.x / 2, viewSize.y / 2);
-            v[2].position = sf::Vector2f(viewSize.x / 2, viewSize.y);
-            v[3].position = sf::Vector2f(0, viewSize.y);
-
-            if (i == 1) {
-                for (int j = 0; j < 4; ++j) v[j].position.x += viewSize.x / 2;
-            }
-
-            v[0].color = colourTop;
-            v[1].color = colourTop;
-            v[2].color = colourBottom;
-            v[3].color = colourBottom;
-
-            v[0].texCoords = sf::Vector2f(0, 0);
-            v[1].texCoords = sf::Vector2f(32, 0);
-            v[2].texCoords = sf::Vector2f(32, 32);
-            v[3].texCoords = sf::Vector2f(0, 32);
-
-            sf::RenderStates states;
-            states.shader = &shader2;
-            states.shaderIsBound = true;
-            states.texture = (i == 0) ? &textureA : &textureB;
-            window.draw(v, 4, sf::PrimitiveType::Quads, states);
-        }
-        sf::Shader::bindProgram(NULL);
 
         window.display();
     }
@@ -450,7 +423,7 @@ int main()
     // testAllDrawables();
     // traceSpritePerf();
     // traceTextureBindingBug();
-    renderTargetBug();
+    traceContextRedundancy();
     
     return EXIT_SUCCESS;
 }
