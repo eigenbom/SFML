@@ -819,10 +819,12 @@ void RenderTarget::setupDraw(bool useVertexCache, const RenderStates& states)
     }
 #endif
 
-    // A manually bound shader needs its textures applied
+    // Apply textures to externally-bound texture
+    bool updateShaderColour = false;
     if (states.shader && states.shaderIsBound) {
         bool textureBindRequired = states.shader->textureBindRequired();
         bool shaderChanged = states.shader->getNativeHandle() != m_cache.lastProgram;
+        updateShaderColour = shaderChanged;
 
         sf::Shader* shader = const_cast<sf::Shader*>(states.shader);
 
@@ -849,7 +851,7 @@ void RenderTarget::setupDraw(bool useVertexCache, const RenderStates& states)
     if (states.shader) {
         // NOTE: shader is bound at this point
         // Apply the color
-        if (!m_cache.enable || states.color != m_cache.lastColor) {
+        if (!m_cache.enable || states.color != m_cache.lastColor || updateShaderColour) {
             const Glsl::Vec4 colour(states.color);
             states.shader->setColourUniform(colour);
             m_cache.lastColor = states.color;
