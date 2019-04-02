@@ -392,6 +392,7 @@ void traceContextRedundancy() {
         targetA.setActive(true);
         targetA.setupGLStates();
         renderThingToTarget(targetA, shader, texture);
+        renderThingToTarget(targetA, shader, texture);
         targetA.display();
         targetA.setActive(false);
 
@@ -403,7 +404,7 @@ void traceContextRedundancy() {
 
         window.setupGLStates();
 
-        if (false && true){
+        if (true){
             sf::RenderTexture& tex = targetA;
             window.setView(sf::View(sf::FloatRect(0, 0, tex.getSize().x, tex.getSize().y)));
             sf::Sprite sprite(tex.getTexture());
@@ -421,9 +422,9 @@ void traceContextRedundancy() {
 int main()
 {
     // testAllDrawables();
-    // traceSpritePerf();
+    traceSpritePerf();
     // traceTextureBindingBug();
-    traceContextRedundancy();
+    // traceContextRedundancy();
     
     return EXIT_SUCCESS;
 }

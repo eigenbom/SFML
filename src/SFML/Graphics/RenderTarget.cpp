@@ -81,6 +81,11 @@ namespace
     typedef std::map<sf::Uint64, sf::Uint64> ContextRenderTargetMap;
     ContextRenderTargetMap contextRenderTargetMap;
 
+    typedef std::map<sf::Uint64, sf::RenderTarget::StatesCache> ContextStatesCacheMap;
+    ContextStatesCacheMap contextStatesCacheMap;
+
+    sf::Uint64 lastActiveContextId = (sf::Uint64) -1;
+
     // Check if a RenderTarget with the given ID is active in the current context
     bool isActive(sf::Uint64 id)
     {
@@ -88,10 +93,28 @@ namespace
 
         if ((iter == contextRenderTargetMap.end()) || (iter->second != id))
             return false;
-
+         
         return true;
     }
 
+    // Get the states cache for the specified GL context
+    sf::RenderTarget::StatesCache& getCache(sf::Uint64 contextId) {
+        static sf::RenderTarget::StatesCache cache;
+        ContextStatesCacheMap::iterator iter = contextStatesCacheMap.find(contextId);
+        if (iter == contextStatesCacheMap.end()) {
+            assert(false);
+            return cache;
+        }
+        else
+            return iter->second;
+    }
+
+    // Get the states cache for the current GL context
+    sf::RenderTarget::StatesCache& getCache() {
+        return getCache(sf::Context::getActiveContextId());
+    }
+
+    // Check state is correct for shaderIsBound
     void checkShaderIsBoundState(sf::Uint64 id, bool glStatesSet, const sf::Shader* shader)
     {
         if (!glStatesSet) {
@@ -160,11 +183,10 @@ namespace sf
 RenderTarget::RenderTarget() :
 m_defaultView(),
 m_view       (),
-m_cache      (),
 m_id         (0),
 m_spriteVBO(sf::TrianglesStrip, sf::VertexBuffer::Static)
 {
-    m_cache.glStatesSet = false;
+
 }
 
 
@@ -176,8 +198,12 @@ RenderTarget::~RenderTarget()
 ////////////////////////////////////////////////////////////
 void RenderTarget::setupGLStates()
 {
-    if (!m_cache.glStatesSet)
-        resetGLStates();
+    if (isActive(m_id) || setActive(true))
+    {
+        if (!getCache().glStatesSet) {
+            resetGLStates();
+        }
+    }
 }
 
 ////////////////////////////////////////////////////////////
@@ -186,7 +212,7 @@ void RenderTarget::clear(const Color& color)
     if (isActive(m_id) || setActive(true))
     {
         // Unbind texture to fix RenderTexture preventing clear
-        applyTexture(RenderStates());
+        applyTexture(RenderStates(), getCache());
 
         glCheck(glClearColor(color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f));
         glCheck(glClear(GL_COLOR_BUFFER_BIT));
@@ -198,7 +224,7 @@ void RenderTarget::clear(const Color& color)
 void RenderTarget::setView(const View& view)
 {
     m_view = view;
-    m_cache.viewChanged = true;
+    getCache().lastRenderTargetView = 0; // Force the view to be re-applied next render
 }
 
 
@@ -330,11 +356,13 @@ void RenderTarget::draw(const Vertex* vertices, std::size_t vertexCount,
     #endif
         
     if (states.shaderIsBound) {
-        checkShaderIsBoundState(m_id, m_cache.glStatesSet, states.shader);
+        checkShaderIsBoundState(m_id, getCache().glStatesSet, states.shader);
     }
 
     if (isActive(m_id) || setActive(true))
     {
+        StatesCache& cache = getCache();
+
         // Check if the vertex count is low enough so that we can pre-transform them
         bool useVertexCache = (vertexCount <= StatesCache::VertexCacheSize);
 
@@ -343,24 +371,24 @@ void RenderTarget::draw(const Vertex* vertices, std::size_t vertexCount,
             // Pre-transform the vertices and store them into the vertex cache
             for (std::size_t i = 0; i < vertexCount; ++i)
             {
-                Vertex& vertex = m_cache.vertexCache[i];
+                Vertex& vertex = cache.vertexCache[i];
                 vertex.position = states.transform * vertices[i].position;
                 vertex.color = vertices[i].color;
                 vertex.texCoords = vertices[i].texCoords;
             }
         }
 
-        setupDraw(useVertexCache, states);
+        setupDraw(useVertexCache, states, cache);
 
-        if (!m_cache.enable || m_cache.lastVBO != 0) {
+        if (!cache.enable || cache.lastVBO != 0) {
             // Unbind any existing VBO
             VertexBuffer::bind(NULL);
-            m_cache.lastVBO = 0;
+            cache.lastVBO = 0;
         }
 
         // Check if texture coordinates array is needed, and update client state accordingly
         bool enableTexCoordsArray = (states.texture || states.shader);
-        if (!m_cache.enable || (enableTexCoordsArray != m_cache.texCoordsArrayEnabled))
+        if (!cache.enable || (enableTexCoordsArray != cache.texCoordsArrayEnabled))
         {
             if (enableTexCoordsArray)
                 glCheck(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
@@ -370,33 +398,33 @@ void RenderTarget::draw(const Vertex* vertices, std::size_t vertexCount,
 
         // If we switch between non-cache and cache mode or enable texture
         // coordinates we need to set up the pointers to the vertices' components
-        if (!m_cache.enable || !useVertexCache || !m_cache.useVertexCache)
+        if (!cache.enable || !useVertexCache || !cache.useVertexCache)
         {
             const char* data = reinterpret_cast<const char*>(vertices);
 
             // If we pre-transform the vertices, we must use our internal vertex cache
             if (useVertexCache)
-                data = reinterpret_cast<const char*>(m_cache.vertexCache);
+                data = reinterpret_cast<const char*>(cache.vertexCache);
 
             glCheck(glVertexPointer(2, GL_FLOAT, sizeof(Vertex), data + 0));
             glCheck(glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(Vertex), data + 8));
             if (enableTexCoordsArray)
                 glCheck(glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), data + 12));
         }
-        else if (enableTexCoordsArray && !m_cache.texCoordsArrayEnabled)
+        else if (enableTexCoordsArray && !cache.texCoordsArrayEnabled)
         {
             // If we enter this block, we are already using our internal vertex cache
-            const char* data = reinterpret_cast<const char*>(m_cache.vertexCache);
+            const char* data = reinterpret_cast<const char*>(cache.vertexCache);
 
             glCheck(glTexCoordPointer(2, GL_FLOAT, sizeof(Vertex), data + 12));
         }
 
         drawPrimitives(type, 0, vertexCount);
-        cleanupDraw(states);
+        cleanupDraw(states, cache);
 
         // Update the cache
-        m_cache.useVertexCache = useVertexCache;
-        m_cache.texCoordsArrayEnabled = enableTexCoordsArray;
+        cache.useVertexCache = useVertexCache;
+        cache.texCoordsArrayEnabled = enableTexCoordsArray;
     }
 }
 
@@ -440,14 +468,16 @@ void RenderTarget::draw(const VertexBuffer& vertexBuffer, std::size_t firstVerte
     #endif
 
     if (states.shaderIsBound) {
-        checkShaderIsBoundState(m_id, m_cache.glStatesSet, states.shader);
+        checkShaderIsBoundState(m_id, getCache().glStatesSet, states.shader);
     }
 
     if (isActive(m_id) || setActive(true))
     {
-        setupDraw(false, states);
+        StatesCache& cache = getCache();
 
-        if (!m_cache.enable || m_cache.lastVBO != vertexBuffer.getNativeHandle()) {
+        setupDraw(false, states, cache);
+
+        if (!cache.enable || cache.lastVBO != vertexBuffer.getNativeHandle()) {
             // Bind vertex buffer
             VertexBuffer::bind(&vertexBuffer);
 
@@ -458,20 +488,20 @@ void RenderTarget::draw(const VertexBuffer& vertexBuffer, std::size_t firstVerte
             // Note: we unbind vertex buffer when necessary.
             // VertexBuffer::bind(NULL);
 
-            m_cache.lastVBO = vertexBuffer.getNativeHandle();
+            cache.lastVBO = vertexBuffer.getNativeHandle();
         }
 
         // Always enable texture coordinates
-        if (!m_cache.enable || !m_cache.texCoordsArrayEnabled)
+        if (!cache.enable || !cache.texCoordsArrayEnabled)
             glCheck(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
 
         drawPrimitives(vertexBuffer.getPrimitiveType(), firstVertex, vertexCount);
 
-        cleanupDraw(states);
+        cleanupDraw(states, cache);
 
         // Update the cache
-        m_cache.useVertexCache = false;
-        m_cache.texCoordsArrayEnabled = true;
+        cache.useVertexCache = false;
+        cache.texCoordsArrayEnabled = true;
     }
 }
 
@@ -480,6 +510,8 @@ void RenderTarget::draw(const VertexBuffer& vertexBuffer, std::size_t firstVerte
 bool RenderTarget::setActive(bool active)
 {
     // Mark this RenderTarget as active or no longer active in the tracking map
+    // Additionally create a new states cache, if none exists
+
     {
         sf::Lock lock(mutex);
 
@@ -487,27 +519,44 @@ bool RenderTarget::setActive(bool active)
 
         ContextRenderTargetMap::iterator iter = contextRenderTargetMap.find(contextId);
 
+        ContextStatesCacheMap::iterator cacheIter = contextStatesCacheMap.find(contextId);
+        if (cacheIter == contextStatesCacheMap.end()) {
+            // Create a new cache
+            StatesCache cache{};
+            cache.glStatesSet = false;
+            cache.enable = false;
+            contextStatesCacheMap[contextId] = cache;
+        }
+
+        StatesCache& cache = getCache(contextId);
+
+        bool resetCache = false;
+        if (lastActiveContextId != contextId) {
+            lastActiveContextId = contextId;
+            resetCache = true;
+        }
+
+        // If we activate the render target then we should reset the cache
+        // if and only if the previous context was different
+
         if (active)
         {
             if (iter == contextRenderTargetMap.end())
             {
                 contextRenderTargetMap[contextId] = m_id;
-
-                m_cache.enable = false;
+                if (resetCache) cache.enable = false;
             }
             else if (iter->second != m_id)
             {
                 iter->second = m_id;
-
-                m_cache.enable = false;
+                if (resetCache) cache.enable = false;
             }
         }
         else
         {
             if (iter != contextRenderTargetMap.end())
                 contextRenderTargetMap.erase(iter);
-
-            m_cache.enable = false;
+            if (resetCache) cache.enable = false;
         }
     }
 
@@ -603,27 +652,28 @@ void RenderTarget::resetGLStates()
         glCheck(glEnableClientState(GL_VERTEX_ARRAY));
         glCheck(glEnableClientState(GL_COLOR_ARRAY));
         glCheck(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
-        m_cache.glStatesSet = true;
+
+        StatesCache& cache = getCache();
+        cache.glStatesSet = true;
 
         // Apply the default SFML states
-        applyBlendMode(BlendAlpha);
-        applyTexture(RenderStates());
+        applyBlendMode(BlendAlpha, cache);
+        applyTexture(RenderStates(), cache);
         if (shaderAvailable)
-            applyShader(NULL);
+            applyShader(NULL, cache);
 
         if (vertexBufferAvailable)
             glCheck(VertexBuffer::bind(NULL));
 
-
-        m_cache.texCoordsArrayEnabled = true;
-        m_cache.useVertexCache = false;
-        m_cache.lastVBO = 0;
-        m_cache.lastProgram = 0;
+        cache.texCoordsArrayEnabled = true;
+        cache.useVertexCache = false;
+        cache.lastVBO = 0;
+        cache.lastProgram = 0;
 
         // Set the default view
         setView(getView());
 
-        m_cache.enable = true;
+        cache.enable = true;
     }
 } 
 
@@ -634,17 +684,17 @@ void RenderTarget::initialize()
     m_defaultView.reset(FloatRect(0, 0, static_cast<float>(getSize().x), static_cast<float>(getSize().y)));
     m_view = m_defaultView;
 
-    // Set GL states only on first draw, so that we don't pollute user's states
-    m_cache.glStatesSet = false;
-
     // Generate a unique ID for this RenderTarget to track
     // whether it is active within a specific context
     m_id = getUniqueId();
+
+    // Set GL states only on first draw, so that we don't pollute user's states
+    // m_cache.glStatesSet = false;
 }
 
 
 ////////////////////////////////////////////////////////////
-void RenderTarget::applyCurrentView()
+void RenderTarget::applyCurrentView(StatesCache& cache)
 {
     // Set the viewport
     IntRect viewport = getViewport(m_view);
@@ -658,12 +708,12 @@ void RenderTarget::applyCurrentView()
     // Go back to model-view mode
     glCheck(glMatrixMode(GL_MODELVIEW));
 
-    m_cache.viewChanged = false;
+    cache.lastRenderTargetView = m_id;
 }
 
 
 ////////////////////////////////////////////////////////////
-void RenderTarget::applyBlendMode(const BlendMode& mode)
+void RenderTarget::applyBlendMode(const BlendMode& mode, StatesCache& cache)
 {
     // Apply the blend mode, falling back to the non-separate versions if necessary
     if (GLEXT_blend_func_separate)
@@ -706,12 +756,12 @@ void RenderTarget::applyBlendMode(const BlendMode& mode)
         }
     }
 
-    m_cache.lastBlendMode = mode;
+    cache.lastBlendMode = mode;
 }
 
 
 ////////////////////////////////////////////////////////////
-void RenderTarget::applyTransform(const Transform& transform)
+void RenderTarget::applyTransform(const Transform& transform, StatesCache& cache)
 {
     // No need to call glMatrixMode(GL_MODELVIEW), it is always the
     // current mode (for optimization purpose, since it's the most used)
@@ -723,7 +773,7 @@ void RenderTarget::applyTransform(const Transform& transform)
 
 
 ////////////////////////////////////////////////////////////
-void RenderTarget::applyTexture(const RenderStates& states, bool applyTransformOnly)
+void RenderTarget::applyTexture(const RenderStates& states, StatesCache& cache, bool applyTransformOnly)
 {
 	const Texture* texture = states.texture;
 	const Transform* textureTransform = states.textureTransform;
@@ -742,52 +792,53 @@ void RenderTarget::applyTexture(const RenderStates& states, bool applyTransformO
         Texture::bind(texture, Texture::Pixels);
     }
 
-    m_cache.lastTextureId = texture ? texture->m_cacheId : 0;
+    cache.lastTextureId = texture ? texture->m_cacheId : 0;
     if (textureTransform) {
-        std::copy(textureTransform->getMatrix(), textureTransform->getMatrix() + 16, m_cache.lastTextureMatrix);
+        std::copy(textureTransform->getMatrix(), textureTransform->getMatrix() + 16, cache.lastTextureMatrix);
     }
     else {
-        std::fill(std::begin(m_cache.lastTextureMatrix), std::end(m_cache.lastTextureMatrix), 0.0f);
+        std::fill(std::begin(cache.lastTextureMatrix), std::end(cache.lastTextureMatrix), 0.0f);
     }
 }
 
 
 ////////////////////////////////////////////////////////////
-void RenderTarget::applyShader(const Shader* shader)
+void RenderTarget::applyShader(const Shader* shader, StatesCache& cache)
 {
     Shader::bind(shader);
 }
 
 
 ////////////////////////////////////////////////////////////
-void RenderTarget::setupDraw(bool useVertexCache, const RenderStates& states)
+void RenderTarget::setupDraw(bool useVertexCache, const RenderStates& states, StatesCache& cache)
 {
     // First set the persistent OpenGL states if it's the very first call
-    if (!m_cache.glStatesSet)
+    if (!cache.glStatesSet)
         resetGLStates();
 
     if (useVertexCache)
     {
         // Since vertices are transformed, we must use an identity transform to render them
-        if (!m_cache.enable || !m_cache.useVertexCache)
+        if (!cache.enable || !cache.useVertexCache)
             glCheck(glLoadIdentity());
     }
     else
     {
-        applyTransform(states.transform);
+        applyTransform(states.transform, cache);
     }
 
     // Apply the view
-    if (!m_cache.enable || m_cache.viewChanged)
-        applyCurrentView();
+    // TODO: Could cache the actual transform and viewport and only update if needed
+    if (!cache.enable || cache.lastRenderTargetView != m_id)
+        applyCurrentView(cache);
 
     // Apply the blend mode
-    if (!m_cache.enable || (states.blendMode != m_cache.lastBlendMode))
-        applyBlendMode(states.blendMode);
+    if (!cache.enable || (states.blendMode != cache.lastBlendMode))
+        applyBlendMode(states.blendMode, cache);
 
     // Apply the texture
     bool textureChanged = false;
-    if (!m_cache.enable || (states.texture && states.texture->m_fboAttachment))
+    if (!cache.enable || (states.texture && states.texture->m_fboAttachment))
     {
         // If the texture is an FBO attachment, always rebind it
         // in order to inform the OpenGL driver that we want changes
@@ -795,7 +846,7 @@ void RenderTarget::setupDraw(bool useVertexCache, const RenderStates& states)
         // This saves us from having to call glFlush() in
         // RenderTextureImplFBO which can be quite costly
         // See: https://www.khronos.org/opengl/wiki/Memory_Model
-        applyTexture(states);
+        applyTexture(states, cache);
     }
     else
     {
@@ -803,11 +854,11 @@ void RenderTarget::setupDraw(bool useVertexCache, const RenderStates& states)
 
         static const float emptyTextureMatrix[16] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
         const float* textureMatrix = (states.textureTransform == nullptr) ? emptyTextureMatrix : states.textureTransform->getMatrix();
-        const bool sameTextureTransform = (textureId == m_cache.lastTextureId) && std::equal(std::begin(m_cache.lastTextureMatrix), std::end(m_cache.lastTextureMatrix), textureMatrix);
+        const bool sameTextureTransform = (textureId == cache.lastTextureId) && std::equal(std::begin(cache.lastTextureMatrix), std::end(cache.lastTextureMatrix), textureMatrix);
 
-        if (!m_cache.enable || (textureId != m_cache.lastTextureId || !sameTextureTransform)) {
-            bool applyTransformOnly = m_cache.enable && textureId == m_cache.lastTextureId;
-            applyTexture(states, applyTransformOnly);
+        if (!cache.enable || (textureId != cache.lastTextureId || !sameTextureTransform)) {
+            bool applyTransformOnly = cache.enable && textureId == cache.lastTextureId;
+            applyTexture(states, cache, applyTransformOnly);
             textureChanged = !applyTransformOnly;
         }
     }
@@ -823,38 +874,38 @@ void RenderTarget::setupDraw(bool useVertexCache, const RenderStates& states)
     bool updateShaderColour = false;
     if (states.shader && states.shaderIsBound) {
         bool textureBindRequired = states.shader->textureBindRequired();
-        bool shaderChanged = states.shader->getNativeHandle() != m_cache.lastProgram;
+        bool shaderChanged = states.shader->getNativeHandle() != cache.lastProgram;
         updateShaderColour = shaderChanged;
 
         sf::Shader* shader = const_cast<sf::Shader*>(states.shader);
 
-        if (!m_cache.enable || shaderChanged || textureChanged || textureBindRequired) {
+        if (!cache.enable || shaderChanged || textureChanged || textureBindRequired) {
             shader->bindCurrentTexture();
             shader->setTextureBindRequired(false);
         }
 
-        if (!m_cache.enable || shaderChanged || textureBindRequired) {
+        if (!cache.enable || shaderChanged || textureBindRequired) {
             shader->bindTextures();
             shader->setTextureBindRequired(false);
         }
 
-        m_cache.lastProgram = shader->getNativeHandle();
+        cache.lastProgram = shader->getNativeHandle();
     }
     else if (states.shader == NULL) {
-        m_cache.lastProgram = 0;        
+        cache.lastProgram = 0;        
     }
 
     // Apply the shader
     if (states.shader && !states.shaderIsBound)
-        applyShader(states.shader);
+        applyShader(states.shader, cache);
 
     if (states.shader) {
         // NOTE: shader is bound at this point
         // Apply the color
-        if (!m_cache.enable || states.color != m_cache.lastColor || updateShaderColour) {
+        if (!cache.enable || states.color != cache.lastColor || updateShaderColour) {
             const Glsl::Vec4 colour(states.color);
             states.shader->setColourUniform(colour);
-            m_cache.lastColor = states.color;
+            cache.lastColor = states.color;
         }
     }
 }
@@ -874,19 +925,19 @@ void RenderTarget::drawPrimitives(PrimitiveType type, std::size_t firstVertex, s
 
 
 ////////////////////////////////////////////////////////////
-void RenderTarget::cleanupDraw(const RenderStates& states)
+void RenderTarget::cleanupDraw(const RenderStates& states, StatesCache& cache)
 {
     // Unbind the shader, if any
     if (states.shader && !states.shaderIsBound)
-        applyShader(NULL);
+        applyShader(NULL, cache);
 
     // If the texture we used to draw belonged to a RenderTexture, then forcibly unbind that texture.
     // This prevents a bug where some drivers do not clear RenderTextures properly.
     if (states.texture && states.texture->m_fboAttachment)
-        applyTexture(RenderStates());
+        applyTexture(RenderStates(), cache);
 
     // Re-enable the cache at the end of the draw if it was disabled
-    m_cache.enable = true;
+    cache.enable = true;
 }
 
 } // namespace sf

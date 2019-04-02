@@ -397,13 +397,16 @@ protected:
     ////////////////////////////////////////////////////////////
     void initialize();
 
+public:
+    struct StatesCache;
+
 private:
 
     ////////////////////////////////////////////////////////////
     /// \brief Apply the current view
     ///
     ////////////////////////////////////////////////////////////
-    void applyCurrentView();
+    void applyCurrentView(StatesCache& cache);
 
     ////////////////////////////////////////////////////////////
     /// \brief Apply a new blending mode
@@ -411,7 +414,7 @@ private:
     /// \param mode Blending mode to apply
     ///
     ////////////////////////////////////////////////////////////
-    void applyBlendMode(const BlendMode& mode);
+    void applyBlendMode(const BlendMode& mode, StatesCache& cache);
 
     ////////////////////////////////////////////////////////////
     /// \brief Apply a new transform
@@ -419,7 +422,7 @@ private:
     /// \param transform Transform to apply
     ///
     ////////////////////////////////////////////////////////////
-    void applyTransform(const Transform& transform);
+    void applyTransform(const Transform& transform, StatesCache& cache);
 
     ////////////////////////////////////////////////////////////
     /// \brief Apply a new texture
@@ -427,7 +430,7 @@ private:
     /// \param texture Texture to apply
     ///
     ////////////////////////////////////////////////////////////
-	void applyTexture(const RenderStates& states, bool applyTransformOnly = false);
+	void applyTexture(const RenderStates& states, StatesCache& cache, bool applyTransformOnly = false);
 
     ////////////////////////////////////////////////////////////
     /// \brief Apply a new shader
@@ -435,7 +438,7 @@ private:
     /// \param shader Shader to apply
     ///
     ////////////////////////////////////////////////////////////
-    void applyShader(const Shader* shader);
+    void applyShader(const Shader* shader, StatesCache& cache);
 
     ////////////////////////////////////////////////////////////
     /// \brief Setup environment for drawing
@@ -444,7 +447,7 @@ private:
     /// \param states         Render states to use for drawing
     ///
     ////////////////////////////////////////////////////////////
-    void setupDraw(bool useVertexCache, const RenderStates& states);
+    void setupDraw(bool useVertexCache, const RenderStates& states, StatesCache& cache);
 
     ////////////////////////////////////////////////////////////
     /// \brief Draw the primitives
@@ -462,8 +465,9 @@ private:
     /// \param states Render states used for drawing
     ///
     ////////////////////////////////////////////////////////////
-    void cleanupDraw(const RenderStates& states);
+    void cleanupDraw(const RenderStates& states, StatesCache& cache);
 
+public:
     ////////////////////////////////////////////////////////////
     /// \brief Render states cache
     ///
@@ -484,14 +488,15 @@ private:
         Vertex    vertexCache[VertexCacheSize]; ///< Pre-transformed vertices cache
         unsigned int lastVBO;                   ///< Cached vbo
         unsigned int lastProgram;               ///< Cached program
+        Uint64    lastRenderTargetView;         ///< Id of last render target whose view was applied
     };
 
+private:
     ////////////////////////////////////////////////////////////
     // Member data
     ////////////////////////////////////////////////////////////
     View        m_defaultView; ///< Default view
     View        m_view;        ///< Current view
-    StatesCache m_cache;       ///< Render states cache
     Uint64      m_id;          ///< Unique number that identifies the RenderTarget
     VertexBuffer m_spriteVBO; ///< A unit-square VBO
 };
