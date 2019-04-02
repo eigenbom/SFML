@@ -618,6 +618,7 @@ void RenderTarget::resetGLStates()
         m_cache.texCoordsArrayEnabled = true;
         m_cache.useVertexCache = false;
         m_cache.lastVBO = 0;
+        m_cache.lastProgram = 0;
 
         // Set the default view
         setView(getView());
@@ -836,6 +837,9 @@ void RenderTarget::setupDraw(bool useVertexCache, const RenderStates& states)
         }
 
         m_cache.lastProgram = shader->getNativeHandle();
+    }
+    else if (states.shader == NULL) {
+        m_cache.lastProgram = 0;        
     }
 
     // Apply the shader

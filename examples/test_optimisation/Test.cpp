@@ -266,7 +266,8 @@ void traceTextureBindingBug() {
 
             sf::Vector2f viewSize = (sf::Vector2f) window.getSize();
 
-            shader.setUniform("u_tex", (i == 0) ? textureA : textureB);
+            // shader.setUniform("u_tex", (i == 0) ? textureA : textureB);
+            shader.setUniform("u_tex", sf::Shader::CurrentTexture);
 
             sf::Color colourTop = sf::Color(255, 255, 255);
             sf::Color colourBottom = sf::Color(0, 0, 0);
@@ -288,14 +289,14 @@ void traceTextureBindingBug() {
             v[3].color = colourBottom;
 
             v[0].texCoords = sf::Vector2f(0, 0);
-            v[1].texCoords = sf::Vector2f(1, 0);
-            v[2].texCoords = sf::Vector2f(1, 1);
-            v[3].texCoords = sf::Vector2f(0, 1);
+            v[1].texCoords = sf::Vector2f(32, 0);
+            v[2].texCoords = sf::Vector2f(32, 32);
+            v[3].texCoords = sf::Vector2f(0, 32);
         	
         	sf::RenderStates states;
             states.shader = &shader;
             states.shaderIsBound = true;
-            // states.texture = (i == 0) ? &textureA : &textureB;			
+            states.texture = (i == 0) ? &textureA : &textureB;			
             window.draw(v, 4, sf::PrimitiveType::Quads, states);
         }
         sf::Shader::bindProgram(NULL);
