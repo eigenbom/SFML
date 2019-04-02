@@ -209,10 +209,107 @@ void traceSpritePerf() {
     }
 }
 
+void traceTextureBindingBug() {
+    sf::RenderWindow window(sf::VideoMode(512, 512), "SFML test");
+    window.setupGLStates();
+    window.display();
+
+    sf::Shader shader;
+    const char* vertexShader = R"(#version 120
+	uniform vec4 u_colour; // Colour uniform, used for new Sprite implementation
+	void main(void)
+	{
+		gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+		gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
+		gl_FrontColor = gl_Color * u_colour;
+	}
+	)";
+
+    const char* fragmentShader = R"(#version 120
+	uniform sampler2D u_tex;
+	void main(void)
+	{
+		vec4 colour = texture2D(u_tex, gl_TexCoord[0].st);
+		gl_FragColor = gl_Color * colour;
+	}
+	)";
+
+    bool result = shader.loadFromMemory(vertexShader, fragmentShader);
+    assert(result);
+    shader.setAutoBind(false);
+
+    sf::Texture textureA;
+    textureA.loadFromFile("resources/ab.png", sf::IntRect(0, 0, 32, 32));
+
+    sf::Texture textureB;
+    textureB.loadFromFile("resources/ab.png", sf::IntRect(32, 0, 32, 32));
+
+    while (window.isOpen())
+    {
+        sf::Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+                window.close();
+            if ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Escape))
+                window.close();
+        }
+        if (!window.isOpen()) break;
+
+        window.setupGLStates();
+        window.clear(sf::Color::Blue);
+
+        std::srand(0);
+
+        sf::Shader::bindProgram(&shader);
+		for (int i=0; i<2; ++i){
+
+            sf::Vector2f viewSize = (sf::Vector2f) window.getSize();
+
+            shader.setUniform("u_tex", (i == 0) ? textureA : textureB);
+
+            sf::Color colourTop = sf::Color(255, 255, 255);
+            sf::Color colourBottom = sf::Color(0, 0, 0);
+
+            sf::Vertex v[4];
+
+            v[0].position = sf::Vector2f(0, 0);
+            v[1].position = sf::Vector2f(viewSize.x / 2, 0);
+            v[2].position = sf::Vector2f(viewSize.x / 2, viewSize.y);
+            v[3].position = sf::Vector2f(0, viewSize.y);
+
+			if (i == 1) {
+                for (int j = 0; j < 4; ++j) v[j].position.x += viewSize.x / 2;
+			}
+
+            v[0].color = colourTop;
+            v[1].color = colourTop;
+            v[2].color = colourBottom;
+            v[3].color = colourBottom;
+
+            v[0].texCoords = sf::Vector2f(0, 0);
+            v[1].texCoords = sf::Vector2f(1, 0);
+            v[2].texCoords = sf::Vector2f(1, 1);
+            v[3].texCoords = sf::Vector2f(0, 1);
+        	
+        	sf::RenderStates states;
+            states.shader = &shader;
+            states.shaderIsBound = true;
+            // states.texture = (i == 0) ? &textureA : &textureB;			
+            window.draw(v, 4, sf::PrimitiveType::Quads, states);
+        }
+        sf::Shader::bindProgram(NULL);
+
+        window.display();
+    }
+}
+
+
 int main()
 {
-    testAllDrawables();
+    // testAllDrawables();
     // traceSpritePerf();
+    traceTextureBindingBug();
     
     return EXIT_SUCCESS;
 }

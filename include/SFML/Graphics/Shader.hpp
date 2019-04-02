@@ -711,7 +711,17 @@ public:
     ///
     ////////////////////////////////////////////////////////////
     static void bind(const Shader* shader);
-    
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Bind a shader for rendering
+    ///
+    /// This is identical to bind() except it doesn't bind the 
+    /// textures. If you use this you have to manually call 
+    /// bindTextures() and bindCurrentTexture().
+    ///
+    ////////////////////////////////////////////////////////////
+    static void bindProgram(const Shader* shader);
+        
     ////////////////////////////////////////////////////////////
     /// \brief Tell whether or not the system supports shaders
     ///
@@ -752,6 +762,23 @@ public:
     ///
     ////////////////////////////////////////////////////////////
     int getUniformLocation(const std::string& name);
+    
+    ////////////////////////////////////////////////////////////
+    /// \brief Bind all the textures used by the shader
+    ///
+    /// This function each texture to a different unit, and
+    /// updates the corresponding variables in the shader accordingly.
+    ///
+    ////////////////////////////////////////////////////////////
+    void bindTextures() const;
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Bind the current texture used by the shader
+    ////////////////////////////////////////////////////////////
+    void bindCurrentTexture() const;
+
+    bool textureBindRequired() const;
+    void setTextureBindRequired(bool required);
 
 private:
 
@@ -769,16 +796,7 @@ private:
     ///
     ////////////////////////////////////////////////////////////
     bool compile(const char* vertexShaderCode, const char* geometryShaderCode, const char* fragmentShaderCode);
-
-    ////////////////////////////////////////////////////////////
-    /// \brief Bind all the textures used by the shader
-    ///
-    /// This function each texture to a different unit, and
-    /// updates the corresponding variables in the shader accordingly.
-    ///
-    ////////////////////////////////////////////////////////////
-    void bindTextures() const;
-
+    
     ////////////////////////////////////////////////////////////
     /// \brief RAII object to save and restore the program
     ///        binding while uniforms are being set
@@ -803,6 +821,7 @@ private:
     UniformTable m_uniforms;       ///< Parameters location cache
     bool         m_alwaysBind;     ///< Bind the shader every time?
     int          m_colorLocation;  ///< Location of u_colour uniform (required)
+    bool         m_textureBindRequired;
 };
 
 inline void Shader::setAutoBind(bool always)

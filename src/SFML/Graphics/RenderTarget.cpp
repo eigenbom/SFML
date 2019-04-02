@@ -785,6 +785,7 @@ void RenderTarget::setupDraw(bool useVertexCache, const RenderStates& states)
         applyBlendMode(states.blendMode);
 
     // Apply the texture
+    bool textureChanged = false;
     if (!m_cache.enable || (states.texture && states.texture->m_fboAttachment))
     {
         // If the texture is an FBO attachment, always rebind it
@@ -806,6 +807,7 @@ void RenderTarget::setupDraw(bool useVertexCache, const RenderStates& states)
         if (!m_cache.enable || (textureId != m_cache.lastTextureId || !sameTextureTransform)) {
             bool applyTransformOnly = m_cache.enable && textureId == m_cache.lastTextureId;
             applyTexture(states, applyTransformOnly);
+            textureChanged = !applyTransformOnly;
         }
     }
 
@@ -815,6 +817,26 @@ void RenderTarget::setupDraw(bool useVertexCache, const RenderStates& states)
         assert(castFromGlHandle(currentShaderHandle) == 0);
     }
 #endif
+
+    // A manually bound shader needs its textures applied
+    if (states.shader && states.shaderIsBound) {
+        bool textureBindRequired = states.shader->textureBindRequired();
+        bool shaderChanged = states.shader->getNativeHandle() != m_cache.lastProgram;
+
+        sf::Shader* shader = const_cast<sf::Shader*>(states.shader);
+
+        if (!m_cache.enable || shaderChanged || textureChanged || textureBindRequired) {
+            shader->bindCurrentTexture();
+            shader->setTextureBindRequired(false);
+        }
+
+        if (!m_cache.enable || shaderChanged || textureBindRequired) {
+            shader->bindTextures();
+            shader->setTextureBindRequired(false);
+        }
+
+        m_cache.lastProgram = shader->getNativeHandle();
+    }
 
     // Apply the shader
     if (states.shader && !states.shaderIsBound)

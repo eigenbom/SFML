@@ -262,7 +262,8 @@ m_currentTexture(-1),
 m_textures      (),
 m_uniforms      (),
 m_alwaysBind(true),
-m_colorLocation(-1)
+m_colorLocation(-1),
+m_textureBindRequired(false)
 {
 }
 
@@ -653,7 +654,10 @@ void Shader::setUniform(const std::string& name, const Texture& texture)
             else
             {
                 // Location already used, just replace the texture
-                it->second = &texture;
+                if (it->second != &texture) {
+                    m_textureBindRequired = true;
+                    it->second = &texture;
+                }
             }
         }
     }
@@ -684,7 +688,10 @@ void Shader::setUniform(int location, const Texture& texture)
             else
             {
                 // Location already used, just replace the texture
-                it->second = &texture;
+                if (it->second != &texture) {
+                    m_textureBindRequired = true;
+                    it->second = &texture;
+                }
             }
         }
     }
@@ -698,7 +705,11 @@ void Shader::setUniform(const std::string& name, CurrentTextureType)
         TransientContextLock lock;
 
         // Find the location of the variable in the shader
-        m_currentTexture = getUniformLocation(name);
+        int location = getUniformLocation(name);
+        if (location != m_currentTexture) {
+            m_textureBindRequired = true;
+            m_currentTexture = location;
+        }
     }
 }
 
@@ -708,7 +719,10 @@ void Shader::setUniform(int location, CurrentTextureType)
     if (m_shaderProgram)
     {
         TransientContextLock lock;
-        m_currentTexture = location;
+        if (location != m_currentTexture) {
+            m_currentTexture = location;
+            m_textureBindRequired = true;
+        }
     }
 }
 
@@ -852,8 +866,33 @@ void Shader::bind(const Shader* shader)
         shader->bindTextures();
 
         // Bind the current texture
-        if (shader->m_currentTexture != -1)
-            glCheck(GLEXT_glUniform1i(shader->m_currentTexture, 0));
+        shader->bindCurrentTexture();
+    }
+    else
+    {
+        // Bind no shader
+        glCheck(GLEXT_glUseProgramObject(0));
+    }
+}
+
+
+////////////////////////////////////////////////////////////
+void Shader::bindProgram(const Shader* shader)
+{
+    TransientContextLock lock;
+
+    // Make sure that we can use shaders
+    if (!isAvailable())
+    {
+        err() << "Failed to bind or unbind shader: your system doesn't support shaders "
+            << "(you should test Shader::isAvailable() before trying to use the Shader class)" << std::endl;
+        return;
+    }
+
+    if (shader && shader->m_shaderProgram)
+    {
+        // Enable the program
+        glCheck(GLEXT_glUseProgramObject(castToGlHandle(shader->m_shaderProgram)));
     }
     else
     {
@@ -1082,6 +1121,21 @@ void Shader::bindTextures() const
     glCheck(GLEXT_glActiveTexture(GLEXT_GL_TEXTURE0));
 }
 
+////////////////////////////////////////////////////////////
+void Shader::bindCurrentTexture() const {
+    if (m_currentTexture != -1)
+        glCheck(GLEXT_glUniform1i(m_currentTexture, 0));
+}
+
+////////////////////////////////////////////////////////////
+bool Shader::textureBindRequired() const {
+    return m_textureBindRequired;
+}
+
+////////////////////////////////////////////////////////////
+void Shader::setTextureBindRequired(bool required) {
+    m_textureBindRequired = required;
+}
 
 ////////////////////////////////////////////////////////////
 int Shader::getUniformLocation(const std::string& name)
