@@ -36,42 +36,31 @@ namespace sf
 {
 ////////////////////////////////////////////////////////////
 Sprite::Sprite() :
-m_verticesBuffer(TrianglesStrip, VertexBuffer::Stream),
 m_texture       (NULL),
 m_textureRect   (),
 m_color(Color::White)
 {
-    if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
-        m_verticesBuffer.create(4);
 }
 
 
 ////////////////////////////////////////////////////////////
 Sprite::Sprite(const Texture& texture) :
-m_verticesBuffer(TrianglesStrip, VertexBuffer::Stream),
 m_texture       (NULL),
 m_textureRect   (),
 m_color(Color::White)
 {
-    if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
-        m_verticesBuffer.create(4);
-
     setTexture(texture);
 }
 
 
 ////////////////////////////////////////////////////////////
 Sprite::Sprite(const Texture& texture, const IntRect& rectangle) :
-m_verticesBuffer(TrianglesStrip, VertexBuffer::Stream),
-m_texture       (NULL),
-m_textureRect   (),
+m_texture       (&texture),
+m_textureRect   (rectangle),
 m_color(Color::White)
 {
-    if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
-        m_verticesBuffer.create(4);
-
-    setTexture(texture);
-    setTextureRect(rectangle);
+    updatePositions();
+    updateTexCoords();
 }
 
 
@@ -97,10 +86,6 @@ void Sprite::setTextureRect(const IntRect& rectangle)
         m_textureRect = rectangle;
         updatePositions();
         updateTexCoords();
-
-        // Update the vertex buffer if it is being used
-        if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
-            m_verticesBuffer.update(m_vertices);
     }
 }
 
@@ -108,15 +93,7 @@ void Sprite::setTextureRect(const IntRect& rectangle)
 ////////////////////////////////////////////////////////////
 void Sprite::setColor(const Color& color)
 {
-    m_vertices[0].color = Color::White;
-    m_vertices[1].color = Color::White;
-    m_vertices[2].color = Color::White;
-    m_vertices[3].color = Color::White;
     m_color = color;
-
-    // Update the vertex buffer if it is being used
-    if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
-        m_verticesBuffer.update(m_vertices);
 }
 
 
@@ -172,16 +149,7 @@ void Sprite::draw(RenderTarget& target, RenderStates states) const
         states.texture = m_texture;
         states.textureTransform = &m_textureTransform;
 		states.color = m_color;
-
-        if (SFML_DRAWABLES_USE_VERTEX_BUFFERS && VertexBuffer::isAvailable())
-        {
-            target.draw(m_verticesBuffer, states);
-        }
-        else
-        {
-            // target.draw(m_vertices, 4, TriangleStrip, states);
-            target.draw(target.getSpriteVBO(), states);
-        }
+		target.draw(target.getSpriteVBO(), states);
     }
 }
 
@@ -190,10 +158,6 @@ void Sprite::draw(RenderTarget& target, RenderStates states) const
 void Sprite::updatePositions()
 {
     FloatRect bounds = getLocalBounds();
-	m_vertices[0].position = Vector2f(0, 0);
-	m_vertices[1].position = Vector2f(0, 1.0f);
-	m_vertices[2].position = Vector2f(1.0f, 0);
-	m_vertices[3].position = Vector2f(1.0f, 1.0f);
 	m_vertexTransform = Transform(
 		bounds.width, 0.0f, 0.0f,
 		0.0f, bounds.height, 0.0f,
@@ -209,11 +173,6 @@ void Sprite::updateTexCoords()
     float right  = left + m_textureRect.width;
     float top    = static_cast<float>(m_textureRect.top);
     float bottom = top + m_textureRect.height;
-
-	m_vertices[0].texCoords = Vector2f(0.0f, 0.0f);
-	m_vertices[1].texCoords = Vector2f(0.0f, 1.0f);
-	m_vertices[2].texCoords = Vector2f(1.0f, 0.0f);
-	m_vertices[3].texCoords = Vector2f(1.0f, 1.0f);
 
 	Vector2u actualSize = m_texture->getActualSize();
 	float xscale = (right - left) / (float)actualSize.x;

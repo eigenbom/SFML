@@ -421,8 +421,8 @@ void traceContextRedundancy() {
 
 int main()
 {
-    // testAllDrawables();
-    traceSpritePerf();
+    testAllDrawables();
+    // traceSpritePerf();
     // traceTextureBindingBug();
     // traceContextRedundancy();
     
