@@ -522,7 +522,7 @@ bool RenderTarget::setActive(bool active)
         ContextStatesCacheMap::iterator cacheIter = contextStatesCacheMap.find(contextId);
         if (cacheIter == contextStatesCacheMap.end()) {
             // Create a new cache
-            StatesCache cache{};
+            StatesCache cache;
             cache.glStatesSet = false;
             cache.enable = false;
             contextStatesCacheMap[contextId] = cache;
