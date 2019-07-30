@@ -5,6 +5,6 @@ set(SRCROOT ${PROJECT_SOURCE_DIR}/examples/test_optimisation)
 set(SRC ${SRCROOT}/Test.cpp)
 
 # define the test target
-sfml_add_example(test GUI_APP
+sfml_add_example(test_optimisation GUI_APP
                  SOURCES ${SRC}
                  DEPENDS sfml-window sfml-graphics)

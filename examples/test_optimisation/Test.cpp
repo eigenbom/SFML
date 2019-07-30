@@ -5,24 +5,22 @@
 
 void loadShaders(sf::Shader& texturedShader, sf::Shader& untexturedShader) {
     {
-        const char* vertexShader = R"(#version 120
-			uniform vec4 u_colour; // Colour uniform, used for new Sprite implementation
-			void main(void)
-			{
-				gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-				gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
-				gl_FrontColor = gl_Color * u_colour;
-			}
-			)";
+        const char* vertexShader = "#version 120\n"
+      "uniform vec4 u_colour;\n"
+			"void main(void)\n"
+			"{\n"
+			"	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n"
+			"	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;\n"
+			"	gl_FrontColor = gl_Color * u_colour;\n"
+			"}\n";
 
-        const char* fragmentShader = R"(#version 120
-			uniform sampler2D u_tex;
-			void main(void)
-			{
-				vec4 colour = texture2D(u_tex, gl_TexCoord[0].st);
-				gl_FragColor = gl_Color * colour;
-			}
-			)";
+        const char* fragmentShader = "#version 120\n"
+			"uniform sampler2D u_tex;\n"
+			"void main(void)\n"
+			"{\n"
+			"	vec4 colour = texture2D(u_tex, gl_TexCoord[0].st);\n"
+			"	gl_FragColor = gl_Color * colour;\n"
+			"}\n";
 
         bool result = texturedShader.loadFromMemory(vertexShader, fragmentShader);
         assert(result);
@@ -31,21 +29,19 @@ void loadShaders(sf::Shader& texturedShader, sf::Shader& untexturedShader) {
     }
 
     {
-        const char* vertexShader = R"(#version 120
-			uniform vec4 u_colour; // Colour uniform, used for new Sprite implementation
-			void main(void)
-			{
-				gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-				gl_FrontColor = gl_Color * u_colour;
-			}
-			)";
+        const char* vertexShader = "#version 120\n"
+			"uniform vec4 u_colour;\n"
+			"void main(void)\n"
+			"{\n"
+			"	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n"
+			"	gl_FrontColor = gl_Color * u_colour;\n"
+			"}\n";
 
-        const char* fragmentShader = R"(#version 120
-			void main(void)
-			{
-				gl_FragColor = gl_Color;
-			}
-			)";
+        const char* fragmentShader = "#version 120\n"
+			"void main(void)\n"
+			"{\n"
+			"	gl_FragColor = gl_Color;\n"
+      "}\n";
 
         bool result = untexturedShader.loadFromMemory(vertexShader, fragmentShader);
         untexturedShader.setAutoBind(false);
@@ -215,24 +211,22 @@ void textureBindingBug() {
     window.display();
 
     sf::Shader shader;
-    const char* vertexShader = R"(#version 120
-	uniform vec4 u_colour; // Colour uniform, used for new Sprite implementation
-	void main(void)
-	{
-		gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-		gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
-		gl_FrontColor = gl_Color * u_colour;
-	}
-	)";
+    const char* vertexShader = "#version 120\n"
+	"uniform vec4 u_colour;\n"
+	"void main(void)\n"
+	"{\n"
+	"	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n"
+	"	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;\n"
+	"	gl_FrontColor = gl_Color * u_colour;\n"
+	"}\n";
 
-    const char* fragmentShader = R"(#version 120
-	uniform sampler2D u_tex;
-	void main(void)
-	{
-		vec4 colour = texture2D(u_tex, gl_TexCoord[0].st);
-		gl_FragColor = gl_Color * colour;
-	}
-	)";
+    const char* fragmentShader = "#version 120\n"
+	"uniform sampler2D u_tex;\n"
+	"void main(void)\n"
+	"{\n"
+	"	vec4 colour = texture2D(u_tex, gl_TexCoord[0].st);\n"
+	"	gl_FragColor = gl_Color * colour;\n"
+  "}\n";
 
     bool result = shader.loadFromMemory(vertexShader, fragmentShader);
     assert(result);
@@ -351,24 +345,23 @@ void traceContextRedundancy() {
     targetB.create(512, 512);
 
     sf::Shader shader;
-    const char* vertexShader = R"(#version 120
-	uniform vec4 u_colour; // Colour uniform, used for new Sprite implementation
-	void main(void)
-	{
-		gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-		gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
-		gl_FrontColor = gl_Color * u_colour;
-	}
-	)";
-
-    const char* fragmentShader = R"(#version 120
-	uniform sampler2D u_tex;
-	void main(void)
-	{
-		vec4 colour = texture2D(u_tex, gl_TexCoord[0].st);
-		gl_FragColor = gl_Color * colour;
-	}
-	)";
+  
+  const char* vertexShader = "#version 120\n"
+  "uniform vec4 u_colour;\n"
+  "void main(void)\n"
+  "{\n"
+  "  gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n"
+  "  gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;\n"
+  "  gl_FrontColor = gl_Color * u_colour;\n"
+  "}\n";
+  
+  const char* fragmentShader = "#version 120\n"
+  "uniform sampler2D u_tex;\n"
+  "void main(void)\n"
+  "{\n"
+  "  vec4 colour = texture2D(u_tex, gl_TexCoord[0].st);\n"
+  "  gl_FragColor = gl_Color * colour;\n"
+  "}\n";
 
     bool result = shader.loadFromMemory(vertexShader, fragmentShader);
     assert(result);
@@ -421,10 +414,10 @@ void traceContextRedundancy() {
 
 int main()
 {
-    testAllDrawables();
+    // testAllDrawables();
     // traceSpritePerf();
     // traceTextureBindingBug();
-    // traceContextRedundancy();
+    traceContextRedundancy();
     
     return EXIT_SUCCESS;
 }
