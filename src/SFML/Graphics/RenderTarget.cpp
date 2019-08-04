@@ -797,7 +797,7 @@ void RenderTarget::applyTexture(const RenderStates& states, StatesCache& cache, 
         std::copy(textureTransform->getMatrix(), textureTransform->getMatrix() + 16, cache.lastTextureMatrix);
     }
     else {
-        std::fill(std::begin(cache.lastTextureMatrix), std::end(cache.lastTextureMatrix), 0.0f);
+        std::fill(&cache.lastTextureMatrix[0], &cache.lastTextureMatrix[16], 0.0f);
     }
 }
 
@@ -853,8 +853,8 @@ void RenderTarget::setupDraw(bool useVertexCache, const RenderStates& states, St
         Uint64 textureId = states.texture ? states.texture->m_cacheId : 0;
 
         static const float emptyTextureMatrix[16] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-        const float* textureMatrix = (states.textureTransform == nullptr) ? emptyTextureMatrix : states.textureTransform->getMatrix();
-        const bool sameTextureTransform = (textureId == cache.lastTextureId) && std::equal(std::begin(cache.lastTextureMatrix), std::end(cache.lastTextureMatrix), textureMatrix);
+        const float* textureMatrix = (states.textureTransform == NULL) ? emptyTextureMatrix : states.textureTransform->getMatrix();
+        const bool sameTextureTransform = (textureId == cache.lastTextureId) && std::equal(&cache.lastTextureMatrix[0], &cache.lastTextureMatrix[16], textureMatrix);
 
         if (!cache.enable || (textureId != cache.lastTextureId || !sameTextureTransform)) {
             bool applyTransformOnly = cache.enable && textureId == cache.lastTextureId;
