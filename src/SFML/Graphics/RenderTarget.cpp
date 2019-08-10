@@ -224,7 +224,10 @@ void RenderTarget::clear(const Color& color)
 void RenderTarget::setView(const View& view)
 {
     m_view = view;
-    getCache().lastRenderTargetView = 0; // Force the view to be re-applied next render
+
+    if (isActive(m_id) || setActive(true)){
+        getCache().lastRenderTargetView = 0; // Force the view to be re-applied next render
+    }
 }
 
 
@@ -354,14 +357,13 @@ void RenderTarget::draw(const Vertex* vertices, std::size_t vertexCount,
             return;
         }
     #endif
-        
-    if (states.shaderIsBound) {
-        checkShaderIsBoundState(m_id, getCache().glStatesSet, states.shader);
-    }
 
-    if (isActive(m_id) || setActive(true))
-    {
+    if (isActive(m_id) || setActive(true)){
         StatesCache& cache = getCache();
+
+        if (states.shaderIsBound) {
+            checkShaderIsBoundState(m_id, cache.glStatesSet, states.shader);
+        }        
 
         // Check if the vertex count is low enough so that we can pre-transform them
         bool useVertexCache = (vertexCount <= StatesCache::VertexCacheSize);
@@ -467,13 +469,12 @@ void RenderTarget::draw(const VertexBuffer& vertexBuffer, std::size_t firstVerte
         }
     #endif
 
-    if (states.shaderIsBound) {
-        checkShaderIsBoundState(m_id, getCache().glStatesSet, states.shader);
-    }
-
-    if (isActive(m_id) || setActive(true))
-    {
+    if (isActive(m_id) || setActive(true)){
         StatesCache& cache = getCache();
+
+        if (states.shaderIsBound) {
+            checkShaderIsBoundState(m_id, cache.glStatesSet, states.shader);
+        }
 
         setupDraw(false, states, cache);
 

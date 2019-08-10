@@ -1,4 +1,8 @@
 build/*
 install/*
 debug/*
+debug32/*
+debug64/*
 release/*
+release32/*
+release64/*
